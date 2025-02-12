@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: gatherup
+      POSTGRES_PASSWORD: gatherup
+      POSTGRES_DB: gatherup
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gatherup"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gatherup-network
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://gatherup:gatherup@db:5432/gatherup
+      - TEST_DATABASE_URL=postgresql://gatherup:gatherup@db:5432/gatherup_test
+      - JWT_SECRET_KEY=test-secret-key 
+    networks:
+      - gatherup-network
+
+networks:
+  gatherup-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
