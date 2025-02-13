@@ -1,21 +1,37 @@
-version: '3.8'
 services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: gatherup
-      POSTGRES_PASSWORD: gatherup
-      POSTGRES_DB: gatherup
+      POSTGRES_USER: ${POSTGRES_USER:-gatherup}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gatherup}
+      POSTGRES_DB: ${POSTGRES_DB:-gatherup}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gatherup"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gatherup}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - gatherup-network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${FLASK_PORT:-8000}:5000"
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key}
+      - FLASK_PORT=8000
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - gatherup-network
 
@@ -25,15 +41,17 @@ services:
       dockerfile: Dockerfile.test
     volumes:
       - .:/app
+    environment:
+      - FLASK_ENV=testing
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
+      - TEST_DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key}
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      - DATABASE_URL=postgresql://gatherup:gatherup@db:5432/gatherup
-      - TEST_DATABASE_URL=postgresql://gatherup:gatherup@db:5432/gatherup_test
-      - JWT_SECRET_KEY=test-secret-key 
     networks:
       - gatherup-network
+    command: tail -f /dev/null
 
 networks:
   gatherup-network:

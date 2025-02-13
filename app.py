@@ -3,14 +3,15 @@ from flask_jwt_extended import JWTManager, create_access_token
 from datetime import timedelta
 from models import SessionLocal, User
 from routes import api
+from config import config
 import os
 
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'test-secret-key')  # Ensure it matches
-print("JWT Secret Key in App:", app.config['JWT_SECRET_KEY'])  # Debugging
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-app.config['JWT_TOKEN_LOCATION'] = ['headers']
-app.config['PROPAGATE_EXCEPTIONS'] = True  # This will help us see JWT errors
+
+# Load configuration based on environment
+env = os.getenv('FLASK_ENV', 'development')
+app.config.from_object(config[env])
+
 jwt = JWTManager(app)
 
 app.register_blueprint(api, url_prefix='/api')
@@ -44,7 +45,7 @@ def login():
             return jsonify({'error': 'Invalid credentials'}), 401
 
         access_token = create_access_token(
-            identity=user.id,
+            identity=str(user.id),
             additional_claims={'user_id': user.id}
         )
         return jsonify({'access_token': access_token})
@@ -55,13 +56,10 @@ def login():
 def expired_token_callback(jwt_header, jwt_payload):
     return jsonify({'error': 'Token has expired'}), 401
 
-@jwt.invalid_token_loader
-def invalid_token_callback(error):
-    return jsonify({'error': 'Invalid token'}), 401
-
 @jwt.unauthorized_loader
 def missing_token_callback(error):
     return jsonify({'error': 'Token is missing'}), 401
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.getenv('FLASK_PORT', 8000))
+    app.run(host='0.0.0.0', port=port, debug=True)
