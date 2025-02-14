@@ -1,12 +1,12 @@
 import pytest
-from app import app
 from models import Base, User, engine, SessionLocal
 from datetime import timedelta
-from config import config
+from core.config import config
+from core.app import create_app
 
 @pytest.fixture(scope='session')
 def app_with_config():
-    app.config.from_object(config['testing'])
+    app = create_app('testing')
     return app
 
 @pytest.fixture
@@ -49,4 +49,9 @@ def auth_headers(client, test_user):
     })
     assert response.status_code == 200, f"Login failed: {response.data}"
     token = response.json['access_token']
-    return {'Authorization': f'Bearer {token}'} 
+    return {'Authorization': f'Bearer {token}'}
+
+@pytest.fixture
+def app():
+    app = create_app('testing')
+    return app 

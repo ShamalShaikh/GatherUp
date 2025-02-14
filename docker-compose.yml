@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    environment:
+    environment: # This is the environment variables for the database
       POSTGRES_USER: ${POSTGRES_USER:-gatherup}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gatherup}
       POSTGRES_DB: ${POSTGRES_DB:-gatherup}
@@ -27,11 +27,14 @@ services:
     environment:
       - FLASK_ENV=${FLASK_ENV:-development}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}
+      - MONGO_URI=mongodb://mongodb:27017/gatherup
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key}
       - FLASK_PORT=8000
     depends_on:
       db:
         condition: service_healthy
+      mongodb:
+        condition: service_started
     networks:
       - gatherup-network
 
@@ -45,13 +48,31 @@ services:
       - FLASK_ENV=testing
       - DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
       - TEST_DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
+      - MONGO_URI=mongodb://mongodb:27017/gatherup
+      - MONGO_TEST_URI=mongodb://mongodb:27017/gatherup_test
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key}
     depends_on:
       db:
         condition: service_healthy
+      mongodb:
+        condition: service_started
     networks:
       - gatherup-network
     command: tail -f /dev/null
+
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gatherup-network
 
 networks:
   gatherup-network:
@@ -59,3 +80,4 @@ networks:
 
 volumes:
   postgres_data:
+  mongodb_data:

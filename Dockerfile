@@ -16,10 +16,10 @@ COPY . .
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV FLASK_APP=app.py
+ENV FLASK_APP=run.py
 
 # Expose port
 EXPOSE 5000
 
 # Command to run the application
-CMD ["flask", "run", "--host=0.0.0.0"] 
+CMD ["python", "run.py"] 

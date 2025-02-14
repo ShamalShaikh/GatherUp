@@ -55,26 +55,24 @@ class User(Base):
         return pbkdf2_sha256.verify(password, self.password_hash)
 
     def update_preferences(self, session, categories=None, max_distance=None):
-        # Ensure preferences dict exists
-        if self.preferences is None:
-            self.preferences = {
-                'categories': [],
-                'max_distance': 10.0
-            }
-
-        # Create a new dict to avoid reference issues
-        new_preferences = dict(self.preferences)
+        """Update user preferences"""
+        current_preferences = self.preferences or {
+            'categories': [],
+            'max_distance': 10.0
+        }
+        
+        # Create new dict to avoid reference issues
+        new_preferences = dict(current_preferences)
 
         if categories is not None:
-            new_preferences['categories'] = list(categories)  # Create a new list
+            new_preferences['categories'] = list(categories)  # Create new list copy
         if max_distance is not None:
             new_preferences['max_distance'] = float(max_distance)
 
-        # Update the preferences with the new dict
+        # Update preferences
         self.preferences = new_preferences
-        
         session.add(self)
         session.commit()
-        session.refresh(self)  # Refresh from database
+        session.refresh(self)  # Ensure we have latest data
         
         return self.preferences 
