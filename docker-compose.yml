@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gatherup}
       POSTGRES_DB: ${POSTGRES_DB:-gatherup}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5432}:5432" # understand this better
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - gatherup-network
+      - gatherup-network #understand this better
 
   web:
     build:
@@ -38,30 +38,30 @@ services:
     networks:
       - gatherup-network
 
-  test:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    volumes:
-      - .:/app
-    environment:
-      - FLASK_ENV=testing
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
-      - TEST_DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
-      - MONGO_URI=mongodb://mongodb:27017/gatherup
-      - MONGO_TEST_URI=mongodb://mongodb:27017/gatherup_test
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key}
-      - TICKETMASTER_API_KEY=test_key
-      - MEETUP_API_KEY=test_key
-      - EVENTBRITE_API_KEY=test_key
-    depends_on:
-      db:
-        condition: service_healthy
-      mongodb:
-        condition: service_started
-    networks:
-      - gatherup-network
-    command: tail -f /dev/null
+  # test:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.test
+  #   volumes:
+  #     - .:/app
+  #   environment:
+  #     - FLASK_ENV=testing
+  #     - DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
+  #     - TEST_DATABASE_URL=postgresql://${POSTGRES_USER:-gatherup}:${POSTGRES_PASSWORD:-gatherup}@db:5432/${POSTGRES_DB:-gatherup}_test
+  #     - MONGO_URI=mongodb://mongodb:27017/gatherup
+  #     - MONGO_TEST_URI=mongodb://mongodb:27017/gatherup_test
+  #     - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key}
+  #     - TICKETMASTER_API_KEY=test_key
+  #     - MEETUP_API_KEY=test_key
+  #     - EVENTBRITE_API_KEY=test_key
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     mongodb:
+  #       condition: service_started
+  #   networks:
+  #     - gatherup-network
+  #   command: tail -f /dev/null
 
   mongodb:
     image: mongo:6
@@ -93,9 +93,9 @@ services:
       - FLASK_ENV=${FLASK_ENV:-development}
       - MONGO_URI=mongodb://mongodb:27017/gatherup
       - REDIS_URL=redis://redis:6379/0
-      - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY}
-      - MEETUP_API_KEY=${MEETUP_API_KEY}
-      - EVENTBRITE_API_KEY=${EVENTBRITE_API_KEY}
+      # - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY}
+      # - MEETUP_API_KEY=${MEETUP_API_KEY}
+      # - EVENTBRITE_API_KEY=${EVENTBRITE_API_KEY}
     depends_on:
       - redis
       - mongodb
@@ -111,7 +111,7 @@ services:
       - FLASK_ENV=${FLASK_ENV:-development}
       - MONGO_URI=mongodb://mongodb:27017/gatherup
       - REDIS_URL=redis://redis:6379/0
-      - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY}
+      # - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY}
     depends_on:
       - redis
       - mongodb
