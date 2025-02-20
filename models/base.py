@@ -1,3 +1,7 @@
+"""
+This module sets up the SQLAlchemy base, engine, and session for database interactions.
+"""
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from core.config import DATABASE_URL

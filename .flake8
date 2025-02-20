@@ -1,3 +1,5 @@
+# This is a configuration file for Flake8, 
+# which is a Python code linting tool that checks your code for style and syntax errors.
 [flake8]
 max-line-length = 88
 extend-ignore = E203

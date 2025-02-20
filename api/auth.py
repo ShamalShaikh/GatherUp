@@ -1,3 +1,7 @@
+"""
+This module handles user authentication, including registration and login.
+"""
+
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import create_access_token
 from models import SessionLocal, User
@@ -6,6 +10,12 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
+    """
+    Register a new user.
+    
+    Validates input data, checks for existing users, and creates a new user.
+    Returns a JWT access token upon successful registration.
+    """
     data = request.get_json()
     current_app.logger.debug(f"Registration request received: {data}")
     
@@ -71,6 +81,11 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    """
+    Log in an existing user.
+    
+    Validates credentials and returns a JWT access token if successful.
+    """
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data provided'}), 400

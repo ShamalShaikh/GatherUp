@@ -1,8 +1,15 @@
+"""
+This module contains unit tests for the User model in SQLAlchemy.
+"""
+
 import pytest
 from models import User
 from sqlalchemy.exc import IntegrityError
 
 def test_user_create(session):
+    """
+    Test creating a new user.
+    """
     user = User.create(
         session=session,
         email="test@example.com",
@@ -15,6 +22,9 @@ def test_user_create(session):
     assert user.verify_password("password123")
 
 def test_user_create_duplicate_email(session):
+    """
+    Test creating a user with a duplicate email.
+    """
     # Create first user
     user1 = User.create(
         session=session,
@@ -34,6 +44,9 @@ def test_user_create_duplicate_email(session):
     assert user2 is None
 
 def test_user_get_by_email(session):
+    """
+    Test retrieving a user by email.
+    """
     # Create user
     user = User.create(
         session=session,
@@ -49,6 +62,9 @@ def test_user_get_by_email(session):
     assert found_user.email == user.email
 
 def test_user_get_by_id(session):
+    """
+    Test retrieving a user by ID.
+    """
     # Create user
     user = User.create(
         session=session,
@@ -64,6 +80,9 @@ def test_user_get_by_id(session):
     assert found_user.email == user.email
 
 def test_user_verify_password(session):
+    """
+    Test verifying a user's password.
+    """
     user = User.create(
         session=session,
         email="test@example.com",
@@ -75,6 +94,9 @@ def test_user_verify_password(session):
     assert not user.verify_password("wrongpassword")
 
 def test_user_update_preferences(session):
+    """
+    Test updating a user's preferences.
+    """
     user = User.create(
         session=session,
         email="test@example.com",

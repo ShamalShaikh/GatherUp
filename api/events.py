@@ -1,3 +1,7 @@
+"""
+This module provides endpoints for managing and retrieving events.
+"""
+
 from flask import Blueprint, jsonify, request
 from models.mongo import MongoDB
 from datetime import datetime, timedelta
@@ -6,7 +10,11 @@ events_bp = Blueprint('events', __name__)
 
 @events_bp.route('/events', methods=['GET'])
 def get_events():
-    """Get events with optional filtering"""
+    """
+    Retrieve events with optional filtering by category and date range.
+    
+    Supports filtering by category and date range, and returns events sorted by start date.
+    """
     mongo = MongoDB()
     try:
         # Build query filter

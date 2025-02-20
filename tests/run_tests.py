@@ -1,3 +1,7 @@
+"""
+This script runs the test suite, allowing for selection of test types (unit, integration, system).
+"""
+
 import pytest
 import sys
 import os
@@ -5,7 +9,8 @@ from typing import List
 
 def run_tests(test_types: List[str] = None) -> int:
     """
-    Run specified types of tests
+    Run specified types of tests.
+    
     Args:
         test_types: List of test types to run ('unit', 'integration', 'system')
     Returns:

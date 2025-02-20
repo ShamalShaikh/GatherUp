@@ -3,8 +3,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import SessionLocal, User
 from contextlib import contextmanager
 
+# This is a blueprint for the API routes
 api = Blueprint('api', __name__)
 
+# This decorator creates a context manager that allows you to use the with statement. It:
+# 1. Creates a new database session
+# 2. Yields the session to the caller
+# 3. Closes the session after the with block is finished
 @contextmanager
 def get_db():
     db = SessionLocal()
@@ -13,10 +18,11 @@ def get_db():
     finally:
         db.close()
 
+# This route gets the user's preferences
 @api.route('/preferences', methods=['GET'])
-@jwt_required()
+@jwt_required() # This decorator ensures that the user is authenticated before accessing the route
 def get_preferences():
-    current_user_id = get_jwt_identity()
+    current_user_id = get_jwt_identity() # This gets the user's ID from the JWT token
     current_app.logger.debug(f"JWT Identity: {current_user_id}")
     
     with get_db() as db:
@@ -35,10 +41,11 @@ def get_preferences():
             
         return jsonify(user.preferences)
 
+# This route updates the user's preferences
 @api.route('/preferences', methods=['PUT'])
 @jwt_required()
 def update_preferences():
-    current_user_id = get_jwt_identity()
+    current_user_id = get_jwt_identity() # This gets the user's ID from the JWT token
     current_app.logger.debug(f"JWT Identity: {current_user_id}")
     
     with get_db() as db:
@@ -52,9 +59,9 @@ def update_preferences():
             return jsonify({'error': 'Invalid JSON'}), 400
 
         try:
-            updated_preferences = validate_and_update_preferences(user, data)
-            db.commit()
-            return jsonify(updated_preferences)
+            updated_preferences = validate_and_update_preferences(user, data) # This validates and updates the user's preferences
+            db.commit() # This commits the changes to the database
+            return jsonify(updated_preferences) # This returns the updated preferences to the client
         except ValueError as e:
             return jsonify({'error': str(e)}), 400
         except Exception as e:

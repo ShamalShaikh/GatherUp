@@ -1,3 +1,7 @@
+"""
+This module contains integration tests for the API, focusing on user authentication and preferences.
+"""
+
 import pytest
 from core.app import create_app
 from models import Base, User, engine, SessionLocal
@@ -8,6 +12,9 @@ from core.config import config
 
 @pytest.fixture
 def client():
+    """
+    Provide a test client for the Flask app.
+    """
     app = create_app('testing')
     app.config['TESTING'] = True
     app.config['JWT_SECRET_KEY'] = 'test-secret-key'
@@ -20,7 +27,9 @@ def client():
 
 @pytest.fixture(scope='function')
 def session():
-    # Clean up before test
+    """
+    Provide a SQLAlchemy session for database operations, ensuring a clean state for each test.
+    """
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     
@@ -29,11 +38,13 @@ def session():
         yield db
     finally:
         db.close()
-        # Clean up after test
         Base.metadata.drop_all(engine)
 
 @pytest.fixture
 def test_user(session):
+    """
+    Create a test user in the database.
+    """
     user = User.create(
         session=session,
         email="test@example.com",
@@ -50,18 +61,21 @@ def test_user(session):
 
 @pytest.fixture
 def auth_headers(client, test_user):
-    # Get a fresh token for each test
+    """
+    Provide authentication headers for a test user.
+    """
     response = client.post('/login', json={
         'email': 'test@example.com',
         'password': 'password123'
     })
     assert response.status_code == 200, 'Login failed'
     token = json.loads(response.data)['access_token']
-    print(f"Generated Token: {token}")  # Debugging
-    print("Using token in request:", f'Bearer {token}')  # Debugging
     return {'Authorization': f'Bearer {token}'}
 
 def test_login_success(client, test_user):
+    """
+    Test successful login with valid credentials.
+    """
     response = client.post('/login', json={
         'email': 'test@example.com',
         'password': 'password123'
@@ -70,6 +84,9 @@ def test_login_success(client, test_user):
     assert 'access_token' in json.loads(response.data)
 
 def test_login_invalid_credentials(client, test_user):
+    """
+    Test login failure with invalid credentials.
+    """
     response = client.post('/login', json={
         'email': 'test@example.com',
         'password': 'wrongpassword'
@@ -77,6 +94,9 @@ def test_login_invalid_credentials(client, test_user):
     assert response.status_code == 401
 
 def test_get_preferences(client, test_user, auth_headers, session):
+    """
+    Test retrieving user preferences.
+    """
     # Initialize preferences
     test_user.preferences = {
         'categories': ['sports', 'music'],
@@ -93,29 +113,30 @@ def test_get_preferences(client, test_user, auth_headers, session):
     assert isinstance(data['max_distance'], (int, float))
 
 def test_update_preferences(client, test_user, auth_headers):
+    """
+    Test updating user preferences.
+    """
     new_preferences = {
         'categories': ['sports', 'music'],
         'max_distance': 20.5
     }
-    print(f"\nTesting update with: {new_preferences}")
-    print(f"Initial preferences: {test_user.preferences}")
     
     response = client.put(
         '/api/preferences',
         headers=auth_headers,
         json=new_preferences
     )
-    print(f"Response status: {response.status_code}")
-    print(f"Response data: {response.data}")
     
     assert response.status_code == 200, f"Response: {response.data}"
     data = json.loads(response.data)
-    print(f"Parsed data: {data}")
     
     assert data['categories'] == new_preferences['categories']
     assert data['max_distance'] == new_preferences['max_distance']
 
 def test_update_preferences_invalid_distance(client, test_user, auth_headers):
+    """
+    Test updating preferences with invalid max_distance.
+    """
     response = client.put(
         '/api/preferences',
         headers=auth_headers,
@@ -124,6 +145,9 @@ def test_update_preferences_invalid_distance(client, test_user, auth_headers):
     assert response.status_code == 400, f"Response: {response.data}"
 
 def test_update_preferences_invalid_categories(client, test_user, auth_headers):
+    """
+    Test updating preferences with invalid categories.
+    """
     response = client.put(
         '/api/preferences',
         headers=auth_headers,
@@ -132,10 +156,16 @@ def test_update_preferences_invalid_categories(client, test_user, auth_headers):
     assert response.status_code == 400, f"Response: {response.data}"
 
 def test_get_preferences_unauthorized(client):
+    """
+    Test retrieving preferences without authorization.
+    """
     response = client.get('/api/preferences')
     assert response.status_code == 401
 
 def test_update_preferences_unauthorized(client):
+    """
+    Test updating preferences without authorization.
+    """
     response = client.put('/api/preferences', json={
         'categories': ['sports'],
         'max_distance': 15
@@ -143,6 +173,9 @@ def test_update_preferences_unauthorized(client):
     assert response.status_code == 401
 
 def test_register_success(client, session):
+    """
+    Test successful user registration.
+    """
     test_email = 'newuser@example.com'
     test_name = 'New User'
     
@@ -172,7 +205,9 @@ def test_register_success(client, session):
     }
 
 def test_register_and_login(client, session):
-    """Test full registration and login flow"""
+    """
+    Test full registration and login flow.
+    """
     # Register new user
     register_response = client.post('/register', json={
         'email': 'newuser@example.com',
@@ -195,6 +230,9 @@ def test_register_and_login(client, session):
     assert stored_user.name == 'New User'
 
 def test_register_duplicate_email(client, test_user):
+    """
+    Test registration with a duplicate email.
+    """
     response = client.post('/register', json={
         'email': 'test@example.com',  # Same email as test_user
         'password': 'password123',
@@ -204,6 +242,9 @@ def test_register_duplicate_email(client, test_user):
     assert b'Email already registered' in response.data
 
 def test_register_invalid_data(client):
+    """
+    Test registration with invalid data.
+    """
     # Missing required fields
     response = client.post('/register', json={
         'email': 'newuser@example.com'

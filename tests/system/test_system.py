@@ -1,3 +1,7 @@
+"""
+This module contains system tests for the application, focusing on end-to-end functionality.
+"""
+
 import requests
 import time
 import subprocess
@@ -7,6 +11,9 @@ from datetime import datetime
 import os
 
 class SystemTester:
+    """
+    A class to perform system tests on the application.
+    """
     def __init__(self, base_url=None):
         # Get port from environment or use default
         port = os.getenv('FLASK_PORT', '8000')
@@ -19,6 +26,9 @@ class SystemTester:
         }
 
     def run_all_tests(self):
+        """
+        Run all system tests.
+        """
         try:
             self.test_database_connection()
             self.test_user_registration()
@@ -30,6 +40,9 @@ class SystemTester:
             sys.exit(1)
 
     def test_database_connection(self):
+        """
+        Test the database connection.
+        """
         print("\nTesting database connection...")
         max_retries = 5
         retry_count = 0
@@ -55,11 +68,17 @@ class SystemTester:
                     raise Exception("Could not connect to database")
 
     def test_user_registration(self):
+        """
+        Test user registration.
+        """
         print("\nTesting user registration...")
         # Implementation will go here once we have the registration endpoint
         print("⚠️ User registration test skipped - endpoint not implemented yet")
 
     def test_login(self):
+        """
+        Test user login.
+        """
         print("\nTesting login...")
         response = requests.post(
             f"{self.base_url}/login",
@@ -76,6 +95,9 @@ class SystemTester:
         print("✅ Login successful")
 
     def test_preferences(self):
+        """
+        Test user preferences functionality.
+        """
         print("\nTesting preferences...")
         headers = {'Authorization': f'Bearer {self.access_token}'}
         
@@ -107,6 +129,9 @@ class SystemTester:
         print("✅ PUT preferences successful")
 
 def main():
+    """
+    Main function to run system tests.
+    """
     print("Starting system tests...")
     
     # Check if Docker containers are running

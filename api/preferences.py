@@ -1,3 +1,7 @@
+"""
+This module manages user preferences, allowing retrieval and updates.
+"""
+
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import SessionLocal, User
@@ -5,7 +9,11 @@ from models import SessionLocal, User
 preferences_bp = Blueprint('preferences', __name__)
 
 def validate_preferences(data):
-    """Validate preference data"""
+    """
+    Validate the structure and content of preference data.
+    
+    Ensures categories are a list and max_distance is a positive number.
+    """
     current_app.logger.debug(f"Validating preferences data: {data}")
     if 'categories' in data:
         if not isinstance(data['categories'], list):
@@ -23,6 +31,11 @@ def validate_preferences(data):
 @preferences_bp.route('/preferences', methods=['GET'])
 @jwt_required()
 def get_preferences():
+    """
+    Retrieve the current user's preferences.
+    
+    Requires JWT authentication.
+    """
     current_user_id = get_jwt_identity()
     
     with SessionLocal() as session:
@@ -35,6 +48,11 @@ def get_preferences():
 @preferences_bp.route('/preferences', methods=['PUT'])
 @jwt_required()
 def update_preferences():
+    """
+    Update the current user's preferences.
+    
+    Validates and updates preferences, requiring JWT authentication.
+    """
     current_user_id = get_jwt_identity()
     current_app.logger.debug(f"Updating preferences for user {current_user_id}")
     

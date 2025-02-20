@@ -1,10 +1,16 @@
+"""
+This module contains integration tests for the events API, focusing on event retrieval and filtering.
+"""
+
 import pytest
 from datetime import datetime, timedelta
 from models.mongo import MongoDB, Event
 
 @pytest.fixture
 def mongo_db():
-    """Fixture for MongoDB test connection"""
+    """
+    Provide a MongoDB test connection.
+    """
     db = MongoDB()
     # Clear events collection before each test
     db.db.events.delete_many({})
@@ -15,7 +21,9 @@ def mongo_db():
 # Fixture to create sample events for testing
 @pytest.fixture
 def sample_events(mongo_db):
-    """Create sample events for testing"""
+    """
+    Create sample events for testing.
+    """
     now = datetime.utcnow()
     events = [
         {
@@ -50,7 +58,9 @@ def sample_events(mongo_db):
 
 # Test retrieving all events with no filters
 def test_get_all_events(client, sample_events):
-    """Test retrieving all events with no filters"""
+    """
+    Test retrieving all events with no filters.
+    """
     response = client.get('/api/events')
     assert response.status_code == 200
     
@@ -69,7 +79,9 @@ def test_get_all_events(client, sample_events):
 
 # Test filtering events by category
 def test_get_events_by_category(client, sample_events):
-    """Test filtering events by category"""
+    """
+    Test filtering events by category.
+    """
     response = client.get('/api/events?category=Tech')
     assert response.status_code == 200
     
@@ -82,7 +94,9 @@ def test_get_events_by_category(client, sample_events):
 
 # Test filtering events by date range
 def test_get_events_by_date_range(client, sample_events):
-    """Test filtering events by date range"""
+    """
+    Test filtering events by date range.
+    """
     # Get reference time from first event and normalize to second precision
     first_event_time = sample_events[0]['startDateTime'].replace(microsecond=0)
     
@@ -112,14 +126,18 @@ def test_get_events_by_date_range(client, sample_events):
 
 # Test error handling for invalid date format
 def test_get_events_invalid_date_format(client):
-    """Test error handling for invalid date format"""
+    """
+    Test error handling for invalid date format.
+    """
     response = client.get('/api/events?startDate=invalid-date')
     assert response.status_code == 400
     assert 'error' in response.get_json()
 
 # Test response when no events match criteria
 def test_get_events_empty_result(client, mongo_db):
-    """Test response when no events match criteria"""
+    """
+    Test response when no events match criteria.
+    """
     response = client.get('/api/events?category=NonExistent')
     assert response.status_code == 200
     assert len(response.get_json()['events']) == 0 

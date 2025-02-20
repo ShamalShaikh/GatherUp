@@ -1,3 +1,7 @@
+"""
+This module contains unit tests for the Event model in MongoDB.
+"""
+
 import pytest
 from datetime import datetime, timedelta
 from models.mongo import MongoDB, Event
@@ -5,7 +9,9 @@ from bson import ObjectId
 
 @pytest.fixture
 def mongo_db():
-    """Fixture for MongoDB test connection"""
+    """
+    Provide a MongoDB test connection.
+    """
     db = MongoDB()
     # Clear events collection before each test
     db.db.events.delete_many({})
@@ -14,7 +20,9 @@ def mongo_db():
     db.close()
 
 def test_create_event(mongo_db):
-    """Test creating a new event"""
+    """
+    Test creating a new event.
+    """
     event_data = {
         'title': 'Test Event',
         'description': 'Test Description',
@@ -40,7 +48,9 @@ def test_create_event(mongo_db):
     assert 'updated_at' in stored_event
 
 def test_create_event_with_extra_fields(mongo_db):
-    """Test creating event with additional fields"""
+    """
+    Test creating event with additional fields.
+    """
     event_data = {
         'title': 'Test Event',
         'description': 'Test Description',
@@ -60,7 +70,9 @@ def test_create_event_with_extra_fields(mongo_db):
     assert created_event['maxAttendees'] == 100
 
 def test_find_events(mongo_db):
-    """Test finding events by query"""
+    """
+    Test finding events by query.
+    """
     # Create test events
     event1 = Event.create(mongo_db, {
         'title': 'Tech Talk',
@@ -91,7 +103,9 @@ def test_find_events(mongo_db):
     assert talk_events[0]['_id'] == event1['_id']
 
 def test_invalid_event_data(mongo_db):
-    """Test validation of event data"""
+    """
+    Test validation of event data.
+    """
     # Missing required field
     with pytest.raises(ValueError, match="Missing required field"):
         Event.create(mongo_db, {

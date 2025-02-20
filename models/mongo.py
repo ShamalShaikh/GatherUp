@@ -1,22 +1,37 @@
+"""
+This module provides MongoDB client setup and operations for event management.
+"""
+
 from pymongo import MongoClient
 from core.config import config
 from datetime import datetime
 from bson import ObjectId
 
 class MongoDB:
+    """
+    MongoDB client wrapper for database operations.
+    """
     def __init__(self, uri=None):
         self.client = MongoClient(uri or config['development'].MONGO_URI)
         self.db = self.client.get_default_database()
         
     def close(self):
+        """Close the MongoDB connection."""
         self.client.close()
 
 class Event:
+    """
+    Event model for MongoDB operations.
+    """
     collection_name = 'events'
     
     @classmethod
     def create(cls, db, event_data):
-        """Create a new event"""
+        """
+        Create a new event in the database.
+        
+        Validates required fields and inserts the event document.
+        """
         # Ensure required fields
         required_fields = ['title', 'description', 'startDateTime', 'endDateTime', 'location', 'categories']
         for field in required_fields:
@@ -42,12 +57,20 @@ class Event:
     
     @classmethod
     def get_by_id(cls, db, event_id):
-        """Get event by ID"""
+        """
+        Retrieve an event by its ID.
+        
+        Converts string ID to ObjectId if necessary.
+        """
         if isinstance(event_id, str):
             event_id = ObjectId(event_id)
         return db.db[cls.collection_name].find_one({'_id': event_id})
     
     @classmethod
     def find(cls, db, query=None):
-        """Find events by query"""
+        """
+        Find events matching a query.
+        
+        Returns a list of events.
+        """
         return list(db.db[cls.collection_name].find(query or {})) 

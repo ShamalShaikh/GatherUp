@@ -1,3 +1,7 @@
+"""
+This module sets up the Flask application, including configuration, extensions, and blueprints.
+"""
+
 from flask import Flask, jsonify
 from core.extensions import jwt
 from api import auth_bp, preferences_bp, events_bp
@@ -5,6 +9,11 @@ from core.config import config
 import os
 
 def create_app(config_name=None):
+    """
+    Create and configure the Flask application.
+    
+    Loads configuration, initializes extensions, and registers blueprints.
+    """
     app = Flask(__name__)
 
     # Load configuration
@@ -23,6 +32,7 @@ def create_app(config_name=None):
     # Root route
     @app.route('/')
     def hello_world():
+        """Simple route to test the application is running."""
         return 'Hello, World!'
 
     return app 

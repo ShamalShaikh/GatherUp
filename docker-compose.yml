@@ -51,6 +51,9 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/gatherup
       - MONGO_TEST_URI=mongodb://mongodb:27017/gatherup_test
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-key}
+      - TICKETMASTER_API_KEY=test_key
+      - MEETUP_API_KEY=test_key
+      - EVENTBRITE_API_KEY=test_key
     depends_on:
       db:
         condition: service_healthy
@@ -71,6 +74,47 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - gatherup-network
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - gatherup-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A workers.tasks worker --loglevel=info
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - MONGO_URI=mongodb://mongodb:27017/gatherup
+      - REDIS_URL=redis://redis:6379/0
+      - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY}
+      - MEETUP_API_KEY=${MEETUP_API_KEY}
+      - EVENTBRITE_API_KEY=${EVENTBRITE_API_KEY}
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - gatherup-network
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A workers.tasks beat --loglevel=info
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - MONGO_URI=mongodb://mongodb:27017/gatherup
+      - REDIS_URL=redis://redis:6379/0
+      - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY}
+    depends_on:
+      - redis
+      - mongodb
     networks:
       - gatherup-network
 
