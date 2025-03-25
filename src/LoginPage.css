@@ -1,0 +1,75 @@
+/* Full-page container with dynamic scaling */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 2vh;
+}
+
+/* Scalable login card */
+.login-card {
+  background-color: white;
+  padding: 3vw;
+  border-radius: 1rem;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 30vw;   /* Scales based on viewport width */
+  min-width: 320px; /* Prevents it from being too small */
+  max-width: 90vw; /* Prevents it from being too large */
+  text-align: center;
+}
+
+/* Responsive heading */
+.login-title {
+  font-size: clamp(1.5rem, 2vw, 2.5rem); /* Scales dynamically */
+  font-weight: bold;
+  margin-bottom: 2vh;
+}
+
+/* Form styling */
+.form-group {
+  margin-bottom: 2vh;
+  text-align: left;
+}
+
+/* Label for input styling */
+.subLabel {
+  margin-bottom: 0.5vh;
+  text-align: left;
+}
+
+/* Input fields with dynamic scaling */
+.login-input {
+  width: 100%;
+  padding: 1vh 1vw;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: clamp(1rem, 1.2vw, 1.5rem); /* Adjusts with screen size */
+  outline: none;
+  transition: border 0.3s ease-in-out;
+}
+
+.login-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0px 0px 4px rgba(59, 130, 246, 0.5);
+}
+
+/* Scalable login button */
+.login-button {
+  width: 100%;
+  background-color: #3b82f6;
+  color: white;
+  padding: clamp(0.8rem, 1.5vh, 1.5rem);
+  border: none;
+  border-radius: 8px;
+  font-size: clamp(1rem, 1.2vw, 1.5rem);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: #2563eb;
+}
+
+  

@@ -1,0 +1,50 @@
+.title{
+    color: #ffffff;
+}
+
+.list-group {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+  
+  .list-group-item {
+    display: flex;
+    justify-content: space-between; /* Ensures equal spacing */
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  
+  .list-group-item.active {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .event-name,
+  .event-location,
+  .event-timeStart,
+  .event-timeEnd,
+  .event-website {
+    flex: 1; /* Makes sure each column has equal width */
+    padding: 0 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds '...' if text is too long */
+  }
+  
+  .event-website a {
+    color: #02c108;
+    text-decoration: none;  
+  }
+  
+  .event-website a:hover {
+    text-decoration: underline;
+  }
+
+  .event-website .no-link {
+    color: rgb(204, 3, 3); /* Makes "N/A" text grey */
+  }
