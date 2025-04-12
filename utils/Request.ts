@@ -20,8 +20,8 @@ export interface IRequest {
 
 // variables
 const auth = {
-  username: 'username',
-  password: 'password',
+  username: 'shamal1',
+  password: 'passwd2',
 };
 
 const createAuth = base64.encode(`${auth.username}:${auth.password}`);
@@ -32,7 +32,8 @@ const createAuth = base64.encode(`${auth.username}:${auth.password}`);
  * @return {string} The base URL for API requests.
  */
 const buildUrl = (): string => {
-  return 'https://website-api.com';
+  return 'http://127.0.0.1:8080';
+  // 'https://website-api.com';
 };
 
 /**
@@ -57,8 +58,16 @@ const getResponse = async (parameters: IRequest): Promise<IResponse> => {
   let response: AxiosResponse<any, any>;
 
   const url = `${buildUrl()}/${parameters.url}`;
+   
+  // Get JWT token from localStorage if available
+  const token = localStorage.getItem('token');
+  
+  // Use JWT token if available, otherwise fall back to Basic Auth
+  const headers = token 
+    ? { Authorization: `Bearer ${token}` } 
+    : { Authorization: `Basic ${createAuth}` };
 
-  const headers = { Authorization: `Basic ${createAuth}` };
+  // const headers = { Authorization: `Basic ${createAuth}` };
 
   try {
     if (parameters.method === 'GET') {
@@ -78,6 +87,18 @@ const getResponse = async (parameters: IRequest): Promise<IResponse> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const err = error as AxiosError;
+
+      // Handle 401 Unauthorized - token expired or invalid
+      if (err.response?.status === 401) {
+        // Clear token and redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Only redirect if we're in the browser
+        if (typeof window !== 'undefined') {
+          window.location.href = '/members/signin';
+        }
+      }
 
       const responseText: string = err.request?.responseText;
 
