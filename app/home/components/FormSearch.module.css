@@ -21,7 +21,7 @@
 .searchTitle {
   font-size: 1.75rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
   text-align: center;
   color: #333;
 }
@@ -55,6 +55,7 @@
 
 .dropdownButton {
   width: 100%;
+  height: 48px;
   padding: 0.875rem 1rem;
   border: 1px solid #e0e0e0;
   border-radius: 0.5rem;
@@ -73,13 +74,22 @@
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
 }
 
+.dropdownButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 .dropdownMenu {
   z-index: 9999;
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   overflow-y: auto;
-  max-height: 250px;
+  max-height: 350px;
+  padding: 0.5rem 0;
+  width: 100%;
+  min-width: auto;
+  max-width: 100%;
 }
 
 .dropdownItem {
@@ -87,6 +97,8 @@
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 0.95rem;
+  border-radius: 0.25rem;
+  margin: 0 0.5rem;
 }
 
 .dropdownItem:hover {
@@ -94,8 +106,27 @@
   color: #3b82f6;
 }
 
+.dropdownItem:active {
+  background-color: #dbeafe;
+}
+
+.dropdownItem:focus-visible {
+  outline: none;
+  background-color: #f0f7ff;
+  color: #3b82f6;
+}
+
+.focused {
+  background-color: #f0f7ff;
+  color: #3b82f6;
+  outline: none;
+  border-left: 3px solid #3b82f6;
+  padding-left: calc(1rem - 3px);
+}
+
 .searchButton {
   width: 100%;
+  height: 48px;
   padding: 0.875rem 1rem;
   background-color: #3b82f6;
   color: white;
@@ -108,13 +139,17 @@
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 1rem;
-  height: 100%;
   margin-top: 1.95rem;
 }
 
 .searchButton:hover {
   background-color: #2563eb;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.searchButton:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
 .searchIcon {
@@ -133,18 +168,399 @@
 @media (min-width: 768px) {
   .formGrid {
     grid-template-columns: repeat(4, 1fr);
-    align-items: end;
-    gap: 1rem;
+    align-items: flex-end;
+    gap: 1.25rem;
   }
   
-  .searchButton {
-    margin-top: 1.95rem;
+  .searchForm {
+    padding: 2rem 2.5rem;
   }
 }
 
 @media (min-width: 1024px) {
   .searchForm {
     max-width: 1200px;
-    padding: 2.5rem;
+    padding: 2.5rem 3rem;
+  }
+  
+  .searchTitle {
+    margin-bottom: 2rem;
+  }
+}
+
+/* Calendar styles - adjusted size */
+.calendar {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  width: 100%;
+  min-width: 260px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.monthYearDisplay {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+
+.navButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  background-color: #f0f7ff;
+  color: #3b82f6;
+}
+
+.navButton:active {
+  background-color: #dbeafe;
+  transform: scale(0.95);
+}
+
+.weekdayHeader {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.2rem;
+  margin-bottom: 0.4rem;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+  padding: 0.4rem 0;
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  justify-items: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.dayButton {
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #333;
+  padding: 0;
+  margin: 2px;
+  transition: all 0.2s ease;
+}
+
+.dayButton:hover:not(:disabled) {
+  background-color: #f0f7ff;
+}
+
+.dayButton:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.dayButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+
+.today {
+  border: 1px solid #3b82f6;
+}
+
+.selected {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.selected:hover {
+  background-color: #2563eb;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Style for keyboard navigation focus */
+.dayButton.focused:not(.selected):not(:focus-visible) {
+  background-color: #f0f7ff;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.calendarFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.footerButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3b82f6;
+  font-size: 0.85rem;
+  padding: 0.4rem;
+  border-radius: 0.25rem;
+}
+
+.footerButton:hover {
+  background-color: #f0f7ff;
+}
+
+.footerButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  background-color: #f0f7ff;
+}
+
+/* Mobile adaptations */
+@media (max-width: 767px) {
+  .dropdownMenu {
+    position: fixed;
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    max-width: 90vw;
+    width: auto;
+  }
+  
+  .calendar {
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+  
+  .dayButton {
+    height: 32px;
+    width: 32px;
+  }
+  
+  .daysGrid {
+    gap: 0;
+    width: 100%;
+  }
+  
+  .searchButton {
+    margin-top: 0;
+  }
+  
+  .formSection {
+    margin-bottom: 0.5rem;
+  }
+  
+  .formGrid {
+    gap: 1rem;
+  }
+}
+
+/* Category styles */
+.categoriesSection {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.categoriesTitle {
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  color: #555;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.categoriesContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 1rem;
+  justify-content: center;
+  justify-items: center;
+}
+
+.categoryButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  padding: 0.5rem;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.categoryButton:hover {
+  border-color: #3b82f6;
+  background-color: #f0f7ff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+  transform: translateY(-2px);
+}
+
+.categoryButton:active {
+  transform: translateY(0);
+}
+
+.categoryButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 4px;
+}
+
+.categorySelected {
+  border-color: #3b82f6;
+  background-color: #f0f7ff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.categoryButton .material-symbols-outlined {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+  color: #555;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.categoryText {
+  font-size: 0.75rem;
+  color: #555;
+  text-align: center;
+  line-height: 1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.categorySelected .material-symbols-outlined {
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.categorySelected .categoryText {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+/* Mobile adaptations for categories */
+@media (max-width: 767px) {
+  .categoriesContainer {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .categoryButton {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .categoryButton .material-symbols-outlined {
+    font-size: 1.75rem;
+  }
+  
+  .categoryText {
+    font-size: 0.7rem;
+  }
+}
+
+/* Adjust spacing for desktop view */
+@media (min-width: 768px) {
+  .categoriesContainer {
+    justify-content: start;
+  }
+}
+
+.selectedCount {
+  display: inline-block;
+  background-color: #3b82f6;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  margin-left: 0.75rem;
+}
+
+.loadingPlaceholder {
+  width: 100%;
+  height: 48px;
+  border-radius: 0.5rem;
+  background: linear-gradient(90deg, #f5f5f5 25%, #efefef 50%, #f5f5f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.categoryPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f5f5f5 25%, #efefef 50%, #f5f5f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .categoryPlaceholder {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+.calendarDropdown {
+  z-index: 9999;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: auto;
+  padding: 0;
+}
+
+@media (max-width: 767px) {
+  .calendarDropdown {
+    position: fixed;
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 300px;
+    max-width: 90vw;
   }
 } 
