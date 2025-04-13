@@ -9,12 +9,46 @@ import styles from './FormSearch.module.css';
 // hooks
 import useAlert from '@hooks/useAlert';
 
+// utils
+import Request, { type IRequest, type IResponse } from '@utils/Request';
+
 // interfaces
 interface IFormProps {
-  keyword: string;
-  location: string;
+  name: string;
+  state: string;
+  city: string;
   date: Date | null;
   categories: string[];
+}
+
+interface IEventResult {
+  _id: string;
+  name: string;
+  date_time: string;
+  image_url: string;
+  descriptions?: string;
+  venue: {
+    name: string;
+    city: string;
+    state: string;
+    country: string;
+  };
+  classifications: {
+    segment: string;
+    genre: string;
+    subGenre?: string;
+  };
+  price_range?: {
+    min: number | null;
+    max: number | null;
+    currency: string | null;
+  };
+  sources: {
+    ticketmaster?: {
+      ticket_availability: string;
+      url: string;
+    };
+  };
 }
 
 // Adding a Simple Calendar Component
@@ -159,11 +193,6 @@ const Calendar = ({ selectedDate, onDateSelect, onClose }: {
       const isFocused = focusedDay === i;
       const disabled = isDateDisabled(date);
       
-      const ariaProps = {
-        'aria-label': `${monthNames[month]} ${i}, ${year}`,
-        'aria-selected': isSelected ? 'true' : 'false'
-      };
-      
       days.push(
         <button
           id={`day-${i}`}
@@ -174,8 +203,9 @@ const Calendar = ({ selectedDate, onDateSelect, onClose }: {
           onClick={() => onDateSelect(date)}
           onFocus={() => setFocusedDay(i)}
           onMouseEnter={() => !disabled && setFocusedDay(i)}
+          aria-label={`${monthNames[month]} ${i}, ${year}`}
+          aria-selected={isSelected ? "true" : "false"}
           tabIndex={isFocused ? 0 : -1}
-          {...ariaProps}
         >
           {i}
         </button>
@@ -274,7 +304,7 @@ const CategoryButton: React.FC<CategoryButtonProps> = ({ icon, text, isSelected,
 
 // Available categories
 const eventCategories = [
-  { icon: 'theater_comedy', text: 'Theater' },
+  { icon: 'theater_comedy', text: 'Theatre' },
   { icon: 'stadium', text: 'Concert' },
   { icon: 'child_care', text: 'Kids' },
   { icon: 'sports_football', text: 'Sports' },
@@ -284,25 +314,44 @@ const eventCategories = [
   { icon: 'festival', text: 'Festival' }
 ];
 
+// Function to format ISO date to readable format
+const formatEventDate = (isoDate: string): string => {
+  try {
+    const date = new Date(isoDate);
+    return format(date, 'MMM dd, yyyy - h:mm a');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return isoDate;
+  }
+};
+
 const FormSearch: React.FC = () => {
   const { showAlert } = useAlert();
   const [isMounted, setIsMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<IEventResult[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showStateDropdown, setShowStateDropdown] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
   
   const [formValues, setFormValues] = useState<IFormProps>({
-    keyword: '',
-    location: 'Any Location',
+    name: '',
+    state: 'Any State',
+    city: 'Any City',
     date: null,
     categories: [],
   });
 
-  const locations = ['Any Location', 'New York', 'Los Angeles', 'Chicago', 'Miami', 'Seattle'];
+  const states = ['Any State', 'CA', 'NY', 'TX', 'FL', 'IL'];
+  const cities = ['Any City', 'Los Angeles', 'New York', 'Chicago', 'Miami', 'Seattle', 'Dallas', 'San Francisco'];
   
   // Refs for dropdown containers
-  const locationRef = useRef<HTMLDivElement>(null);
+  const stateRef = useRef<HTMLDivElement>(null);
+  const cityRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
   
   // Set mounted state for client-side rendering and track window width
@@ -313,17 +362,26 @@ const FormSearch: React.FC = () => {
       setWindowWidth(window.innerWidth);
     };
     
+    const handleScroll = () => {
+      // Force update of dropdown positions when scrolling
+      if (showStateDropdown || showCityDropdown || showDatePicker) {
+        setForceUpdate(prev => prev + 1);
+      }
+    };
+    
     // Set initial width
     setWindowWidth(window.innerWidth);
     
-    // Add event listener
+    // Add event listeners
     window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll);
     
     // Clean up
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [showStateDropdown, showCityDropdown, showDatePicker]);
   
   // Function to get dropdown position
   const getDropdownPosition = (ref: React.RefObject<HTMLDivElement | null>) => {
@@ -334,7 +392,7 @@ const FormSearch: React.FC = () => {
     // For mobile view, position centered but below the button
     if (windowWidth < 768) {
       return {
-        top: rect.bottom + window.scrollY + 5, // Add a small gap
+        top: rect.bottom + 5, // Add a small gap
         left: windowWidth / 2,
         transform: 'translateX(-50%)',
         width: Math.min(300, windowWidth * 0.9),
@@ -344,8 +402,8 @@ const FormSearch: React.FC = () => {
     
     // For desktop view, position below the button
     return {
-      top: rect.bottom + window.scrollY + 5, // Add a small gap
-      left: rect.left + window.scrollX,
+      top: rect.bottom + 5, // Add a small gap
+      left: rect.left,
       transform: 'none',
       width: rect.width,
       maxWidth: rect.width
@@ -372,7 +430,8 @@ const FormSearch: React.FC = () => {
         break;
       case 'Escape':
         e.preventDefault();
-        setShowLocationDropdown(false);
+        setShowStateDropdown(false);
+        setShowCityDropdown(false);
         setShowDatePicker(false);
         break;
       default:
@@ -383,13 +442,22 @@ const FormSearch: React.FC = () => {
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (locationRef.current && !locationRef.current.contains(event.target as Node)) {
+      if (stateRef.current && !stateRef.current.contains(event.target as Node)) {
         // Don't close if clicking inside the dropdown portal
-        const locationDropdownElement = document.getElementById('location-dropdown-portal');
-        if (locationDropdownElement && locationDropdownElement.contains(event.target as Node)) {
+        const stateDropdownElement = document.getElementById('state-dropdown-portal');
+        if (stateDropdownElement && stateDropdownElement.contains(event.target as Node)) {
           return;
         }
-        setShowLocationDropdown(false);
+        setShowStateDropdown(false);
+      }
+      
+      if (cityRef.current && !cityRef.current.contains(event.target as Node)) {
+        // Don't close if clicking inside the dropdown portal
+        const cityDropdownElement = document.getElementById('city-dropdown-portal');
+        if (cityDropdownElement && cityDropdownElement.contains(event.target as Node)) {
+          return;
+        }
+        setShowCityDropdown(false);
       }
       
       if (dateRef.current && !dateRef.current.contains(event.target as Node)) {
@@ -404,7 +472,8 @@ const FormSearch: React.FC = () => {
     
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setShowLocationDropdown(false);
+        setShowStateDropdown(false);
+        setShowCityDropdown(false);
         setShowDatePicker(false);
       }
     }
@@ -428,11 +497,17 @@ const FormSearch: React.FC = () => {
     setFormValues({ ...formValues, [name]: value });
   };
 
-  const [focusedLocationIndex, setFocusedLocationIndex] = useState<number>(-1);
+  const [focusedStateIndex, setFocusedStateIndex] = useState<number>(-1);
+  const [focusedCityIndex, setFocusedCityIndex] = useState<number>(-1);
 
-  const handleLocationSelect = (location: string): void => {
-    setFormValues({ ...formValues, location });
-    setShowLocationDropdown(false);
+  const handleStateSelect = (state: string): void => {
+    setFormValues({ ...formValues, state });
+    setShowStateDropdown(false);
+  };
+
+  const handleCitySelect = (city: string): void => {
+    setFormValues({ ...formValues, city });
+    setShowCityDropdown(false);
   };
 
   const handleDateSelect = (date: Date): void => {
@@ -468,18 +543,18 @@ const FormSearch: React.FC = () => {
   /**
    * Handles the form submission event.
    *
-   * Prevents the default form submission behavior, checks if the keyword input is valid (minimum 3 characters),
-   * and displays an error alert if the input is invalid.
+   * Prevents the default form submission behavior, validates inputs,
+   * and sends the form data to the backend filterEvents API.
    *
    * @param {React.FormEvent<HTMLFormElement>} e - The event object from the form submission.
    */
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
-    const { keyword, location, date, categories } = formValues;
+    const { name, state, city, date, categories } = formValues;
     
     // Validate search input
-    if ((keyword === '' || keyword.length < 3) && categories.length === 0) {
+    if ((name === '' || name.length < 3) && categories.length === 0) {
       showAlert({ 
         type: 'error', 
         text: 'Please enter minimum 3 characters for search or select at least one category.' 
@@ -487,15 +562,87 @@ const FormSearch: React.FC = () => {
       return;
     }
     
-    // Log the search parameters for now (would be replaced with actual search implementation)
-    console.log('Search with parameters:', {
-      keyword,
-      location,
-      date: date ? format(date, 'yyyy-MM-dd') : null,
-      categories
-    });
+    // Set to null if "Any" values are selected
+    const stateParam = state === 'Any State' ? null : state;
+    const cityParam = city === 'Any City' ? null : city;
     
-    // Here you would normally call an API or dispatch an action to perform the search
+    // Format the request data
+    const requestData = {
+      name: name.trim() || '',
+      state: stateParam || '',
+      city: cityParam || '',
+      date: date ? format(date, 'yyyy-MM-dd') : '',
+      categories: categories.length > 0 ? categories : []
+    };
+    
+    // Log the search parameters
+    console.log('Sending search parameters to API:', requestData);
+    
+    // Reset search state
+    setSearchResults([]);
+    setHasSearched(true);
+    
+    try {
+      // Prepare request parameters
+      const parameters: IRequest = {
+        url: 'searchEvents',
+        method: 'POST',
+        postData: requestData
+      };
+      
+      // Show loading state
+      setIsLoading(true);
+      
+      // Send request to API
+      const response: IResponse = await Request.getResponse(parameters);
+      
+      // Hide loading state
+      setIsLoading(false);
+      
+      // Handle response
+      if (response.status === 200) {
+        // Success - handle the response data structure safely
+        let results: IEventResult[] = [];
+        
+        // Use type assertion to handle the response data
+        const responseData = response.data as any;
+        
+        if (responseData) {
+          if (Array.isArray(responseData.data)) {
+            results = responseData.data;
+          } else if (Array.isArray(responseData.results)) {
+            results = responseData.results;
+          } else if (Array.isArray(responseData)) {
+            results = responseData;
+          }
+        }
+        
+        setSearchResults(results);
+        
+        // Show success message
+        showAlert({
+          type: 'success',
+          text: `Found ${results.length} events matching your criteria`
+        });
+      } else {
+        // Show error message
+        showAlert({
+          type: 'error',
+          text: response.data.title || 'Failed to filter events. Please try again.'
+        });
+      }
+    } catch (error) {
+      // Hide loading state
+      setIsLoading(false);
+      
+      // Show error message
+      showAlert({
+        type: 'error',
+        text: 'An error occurred while connecting to the server. Please try again.'
+      });
+      
+      console.error('Error filtering events:', error);
+    }
   };
 
   // Function to format date
@@ -517,11 +664,15 @@ const FormSearch: React.FC = () => {
           <h3 className={styles.searchTitle}>Find Events</h3>
           <div className={styles.formGrid}>
             <div className={styles.formSection}>
-              <div className={styles.inputLabel}>Keywords</div>
+              <div className={styles.inputLabel}>Name</div>
               <div className={styles.loadingPlaceholder}></div>
             </div>
             <div className={styles.formSection}>
-              <div className={styles.inputLabel}>Location</div>
+              <div className={styles.inputLabel}>State</div>
+              <div className={styles.loadingPlaceholder}></div>
+            </div>
+            <div className={styles.formSection}>
+              <div className={styles.inputLabel}>City</div>
               <div className={styles.loadingPlaceholder}></div>
             </div>
             <div className={styles.formSection}>
@@ -552,66 +703,124 @@ const FormSearch: React.FC = () => {
         
         <div className={styles.formGrid}>
           <div className={styles.formSection}>
-            <label className={styles.inputLabel}>Keywords</label>
+            <label className={styles.inputLabel}>Name</label>
             <Input
               type='text'
-              name='keyword'
-              value={formValues.keyword}
+              name='name'
+              value={formValues.name}
               maxLength={64}
-              placeholder='Event, venue, artist, keyword'
+              placeholder='Event, venue, artist, name'
               required
               onChange={handleChange}
             />
           </div>
           
           <div className={styles.formSection}>
-            <label className={styles.inputLabel}>Location</label>
-            <div className={styles.dropdownContainer} ref={locationRef}>
+            <label className={styles.inputLabel}>State</label>
+            <div className={styles.dropdownContainer} ref={stateRef}>
               <button 
                 type="button"
                 className={styles.dropdownButton}
-                onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                onClick={() => setShowStateDropdown(!showStateDropdown)}
                 aria-haspopup="listbox"
-                aria-expanded={showLocationDropdown}
-                aria-label="Select a location"
+                aria-expanded={showStateDropdown}
+                aria-label="Select a state"
               >
-                <span>{formValues.location}</span>
+                <span>{formValues.state}</span>
                 <span className="material-symbols-outlined">
-                  {showLocationDropdown ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+                  {showStateDropdown ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
                 </span>
               </button>
               
-              {isMounted && showLocationDropdown && createPortal(
+              {isMounted && showStateDropdown && createPortal(
                 <div 
-                  id="location-dropdown-portal"
+                  id="state-dropdown-portal"
                   className={styles.dropdownMenu}
                   role="listbox"
                   tabIndex={-1}
-                  aria-activedescendant={focusedLocationIndex >= 0 ? `location-option-${focusedLocationIndex}` : undefined}
+                  aria-activedescendant={focusedStateIndex >= 0 ? `state-option-${focusedStateIndex}` : undefined}
                   style={{
                     position: 'fixed',
-                    top: getDropdownPosition(locationRef).top,
-                    left: getDropdownPosition(locationRef).left,
-                    width: windowWidth < 768 ? 'auto' : getDropdownPosition(locationRef).width,
-                    maxWidth: windowWidth < 768 ? '300px' : getDropdownPosition(locationRef).width,
+                    top: getDropdownPosition(stateRef).top,
+                    left: getDropdownPosition(stateRef).left,
+                    width: windowWidth < 768 ? 'auto' : getDropdownPosition(stateRef).width,
+                    maxWidth: windowWidth < 768 ? '300px' : getDropdownPosition(stateRef).width,
                     transform: windowWidth < 768 ? 'translateX(-50%)' : 'none',
                     zIndex: 9999
                   }}
-                  onKeyDown={(e) => handleKeyDown(e, locations, focusedLocationIndex, setFocusedLocationIndex, handleLocationSelect)}
+                  onKeyDown={(e) => handleKeyDown(e, states, focusedStateIndex, setFocusedStateIndex, handleStateSelect)}
+                  key={`state-dropdown-${forceUpdate}`}
                 >
-                  {locations.map((location, index) => (
+                  {states.map((state, index) => (
                     <div 
-                      key={location}
-                      id={`location-option-${index}`}
-                      className={`${styles.dropdownItem} ${focusedLocationIndex === index ? styles.focused : ''}`}
-                      onClick={() => handleLocationSelect(location)}
+                      key={state}
+                      id={`state-option-${index}`}
+                      className={`${styles.dropdownItem} ${focusedStateIndex === index ? styles.focused : ''}`}
+                      onClick={() => handleStateSelect(state)}
                       role="option"
-                      aria-selected={formValues.location === location}
+                      aria-selected={formValues.state === state}
                       tabIndex={0}
-                      onMouseEnter={() => setFocusedLocationIndex(index)}
-                      onFocus={() => setFocusedLocationIndex(index)}
+                      onMouseEnter={() => setFocusedStateIndex(index)}
+                      onFocus={() => setFocusedStateIndex(index)}
                     >
-                      {location}
+                      {state}
+                    </div>
+                  ))}
+                </div>,
+                document.body
+              )}
+            </div>
+          </div>
+          
+          <div className={styles.formSection}>
+            <label className={styles.inputLabel}>City</label>
+            <div className={styles.dropdownContainer} ref={cityRef}>
+              <button 
+                type="button"
+                className={styles.dropdownButton}
+                onClick={() => setShowCityDropdown(!showCityDropdown)}
+                aria-haspopup="listbox"
+                aria-expanded={showCityDropdown}
+                aria-label="Select a city"
+              >
+                <span>{formValues.city}</span>
+                <span className="material-symbols-outlined">
+                  {showCityDropdown ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+                </span>
+              </button>
+              
+              {isMounted && showCityDropdown && createPortal(
+                <div 
+                  id="city-dropdown-portal"
+                  className={styles.dropdownMenu}
+                  role="listbox"
+                  tabIndex={-1}
+                  aria-activedescendant={focusedCityIndex >= 0 ? `city-option-${focusedCityIndex}` : undefined}
+                  style={{
+                    position: 'fixed',
+                    top: getDropdownPosition(cityRef).top,
+                    left: getDropdownPosition(cityRef).left,
+                    width: windowWidth < 768 ? 'auto' : getDropdownPosition(cityRef).width,
+                    maxWidth: windowWidth < 768 ? '300px' : getDropdownPosition(cityRef).width,
+                    transform: windowWidth < 768 ? 'translateX(-50%)' : 'none',
+                    zIndex: 9999
+                  }}
+                  onKeyDown={(e) => handleKeyDown(e, cities, focusedCityIndex, setFocusedCityIndex, handleCitySelect)}
+                  key={`city-dropdown-${forceUpdate}`}
+                >
+                  {cities.map((city, index) => (
+                    <div 
+                      key={city}
+                      id={`city-option-${index}`}
+                      className={`${styles.dropdownItem} ${focusedCityIndex === index ? styles.focused : ''}`}
+                      onClick={() => handleCitySelect(city)}
+                      role="option"
+                      aria-selected={formValues.city === city}
+                      tabIndex={0}
+                      onMouseEnter={() => setFocusedCityIndex(index)}
+                      onFocus={() => setFocusedCityIndex(index)}
+                    >
+                      {city}
                     </div>
                   ))}
                 </div>,
@@ -648,6 +857,7 @@ const FormSearch: React.FC = () => {
                     transform: windowWidth < 768 ? 'translateX(-50%)' : 'none',
                     zIndex: 9999
                   }}
+                  key={`calendar-dropdown-${forceUpdate}`}
                 >
                   <Calendar 
                     selectedDate={formValues.date} 
@@ -661,9 +871,22 @@ const FormSearch: React.FC = () => {
           </div>
           
           <div className={styles.formSection}>
-            <button type="submit" className={styles.searchButton}>
-              <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
-              Search Events
+            <button 
+              type="submit" 
+              className={styles.searchButton}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span className={`material-symbols-outlined ${styles.searchIcon}`}>hourglass_empty</span>
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+                  Search Events
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -691,7 +914,92 @@ const FormSearch: React.FC = () => {
       </form>
       
       <div className={styles.contentArea}>
-        {/* Your main content will go here */}
+        {hasSearched && (
+          <div className={styles.resultsContainer}>
+            <h3 className={styles.resultsTitle}>
+              {searchResults.length > 0 
+                ? `Found ${searchResults.length} events` 
+                : 'No events found matching your criteria'}
+            </h3>
+            
+            {searchResults.length > 0 && (
+              <div className={styles.resultsList}>
+                {searchResults.map((event) => (
+                  <div key={event._id} className={styles.eventCard}>
+                    {event.image_url && (
+                      <div className={styles.eventImageContainer}>
+                        <img src={event.image_url} alt={event.name} className={styles.eventImage} />
+                      </div>
+                    )}
+                    <div className={styles.eventInfo}>
+                      <h4 className={styles.eventTitle}>{event.name}</h4>
+                      <div className={styles.eventMetadata}>
+                        <span className={styles.eventDate}>
+                          <span className="material-symbols-outlined">calendar_today</span>
+                          {formatEventDate(event.date_time)}
+                        </span>
+                        <span className={styles.eventLocation}>
+                          <span className="material-symbols-outlined">location_on</span>
+                          {event.venue.name}, {event.venue.city}, {event.venue.state}
+                        </span>
+                        <span className={styles.eventCategory}>
+                          <span className="material-symbols-outlined">
+                            {/* Map segment or genre to appropriate icon */}
+                            {event.classifications.genre.toLowerCase().includes('concert') ? 'stadium' : 
+                             event.classifications.genre.toLowerCase().includes('theatre') ? 'theater_comedy' :
+                             event.classifications.genre.toLowerCase().includes('sports') ? 'sports_football' :
+                             event.classifications.segment.toLowerCase().includes('arts') ? 'theater_comedy' :
+                             'event'}
+                          </span>
+                          {event.classifications.genre || event.classifications.segment}
+                          {event.classifications.subGenre && ` - ${event.classifications.subGenre}`}
+                        </span>
+                      </div>
+                      
+                      {/* Price and ticket availability */}
+                      <div className={styles.eventActions}>
+                        {event.price_range && (
+                          <div className={styles.eventPrice}>
+                            <span className="material-symbols-outlined">sell</span>
+                            {event.price_range.min !== null && event.price_range.max !== null 
+                              ? `${event.price_range.min} - ${event.price_range.max} ${event.price_range.currency || 'USD'}` 
+                              : 'Price not available'}
+                          </div>
+                        )}
+                        
+                        {event.sources?.ticketmaster && (
+                          <div className={styles.ticketStatus}>
+                            <span className={`material-symbols-outlined ${
+                              event.sources.ticketmaster.ticket_availability === 'onsale' 
+                                ? styles.availableTicket 
+                                : styles.unavailableTicket
+                            }`}>
+                              {event.sources.ticketmaster.ticket_availability === 'onsale' ? 'confirmation_number' : 'do_not_disturb'}
+                            </span>
+                            {event.sources.ticketmaster.ticket_availability === 'onsale' ? 'Tickets on sale' : 'Currently unavailable'}
+                          </div>
+                        )}
+                        
+                        {/* Ticket purchase button */}
+                        {event.sources?.ticketmaster?.url && event.sources.ticketmaster.ticket_availability === 'onsale' && (
+                          <a 
+                            href={event.sources.ticketmaster.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className={styles.buyButton}
+                          >
+                            <span className="material-symbols-outlined">shopping_cart</span>
+                            Buy Tickets
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -137,14 +137,20 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
   font-size: 1rem;
   margin-top: 1.95rem;
 }
 
-.searchButton:hover {
+.searchButton:hover:not(:disabled) {
   background-color: #2563eb;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.searchButton:disabled {
+  background-color: #a5c4fc;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .searchButton:focus-visible {
@@ -167,7 +173,7 @@
 /* Responsive styles */
 @media (min-width: 768px) {
   .formGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     align-items: flex-end;
     gap: 1.25rem;
   }
@@ -185,6 +191,12 @@
   
   .searchTitle {
     margin-bottom: 2rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .formGrid {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
   }
 }
 
@@ -563,4 +575,185 @@
     width: 300px;
     max-width: 90vw;
   }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.searchButton:disabled .searchIcon {
+  animation: spin 2s linear infinite;
+}
+
+/* Results styles */
+.contentArea {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.resultsContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.resultsTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #333;
+  text-align: center;
+}
+
+.resultsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.eventCard {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.eventCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.eventImageContainer {
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  position: relative;
+  overflow: hidden;
+}
+
+.eventImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eventInfo {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.eventTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.eventMetadata {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.eventDate, .eventLocation, .eventCategory, .eventPrice, .ticketStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.eventDate .material-symbols-outlined,
+.eventLocation .material-symbols-outlined,
+.eventCategory .material-symbols-outlined,
+.eventPrice .material-symbols-outlined,
+.ticketStatus .material-symbols-outlined {
+  font-size: 1.2rem;
+  color: #6b7280;
+}
+
+.eventPrice {
+  margin-top: auto;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Event actions section */
+.eventActions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Ticket status indicators */
+.availableTicket {
+  color: #10b981 !important;
+}
+
+.unavailableTicket {
+  color: #ef4444 !important;
+}
+
+.ticketStatus {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* Buy tickets button */
+.buyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.buyButton:hover {
+  background-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.buyButton .material-symbols-outlined {
+  font-size: 1.2rem;
+  color: white;
+}
+
+@media (max-width: 767px) {
+  .resultsList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* No results message */
+.noResults {
+  text-align: center;
+  padding: 3rem 0;
+  color: #6b7280;
+  font-size: 1.1rem;
 } 
