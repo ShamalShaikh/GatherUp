@@ -554,7 +554,7 @@ const FormSearch: React.FC = () => {
     const { name, state, city, date, categories } = formValues;
     
     // Validate search input
-    if ((name === '' || name.length < 3) && categories.length === 0) {
+    if (name === '' && categories.length === 0 && state === 'Any State' && city === 'Any City' && date === null) {
       showAlert({ 
         type: 'error', 
         text: 'Please enter minimum 3 characters for search or select at least one category.' 
