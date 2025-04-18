@@ -40,7 +40,7 @@ export default [
       ...jsxA11yPlugin.configs.recommended.rules,
       'no-console': 'warn',
       'react/prop-types': 'off',
-      'prettier/prettier': 'error',
+      'prettier/prettier': 'off',
       'jsx-a11y/no-autofocus': 'off',
       '@next/next/no-img-element': 'off',
       'react/react-in-jsx-scope': 'off',

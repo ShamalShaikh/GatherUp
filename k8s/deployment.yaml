@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatherup-ui-deployment
+  labels:
+    app: gatherup-ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gatherup-ui
+  template:
+    metadata:
+      labels:
+        app: gatherup-ui
+    spec:
+      containers:
+        - name: gatherup-ui-container
+          image: gcr.io/gatherup-453505/gatherup-ui:latest
+          ports:
+            - containerPort: 3000
