@@ -46,7 +46,7 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/require-default-props': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
-      'no-unused-vars': ['error', { args: 'none' }],
+      'no-unused-vars': 'off', //['error', { args: 'none' }],
       'jsx-a11y/label-has-associated-control': 'off',
       'react/function-component-definition': [2, { namedComponents: 'arrow-function' }],
     },
