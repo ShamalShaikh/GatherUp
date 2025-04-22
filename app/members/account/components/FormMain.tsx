@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Link from 'next/link';
 
@@ -19,28 +19,45 @@ import Request, { type IRequest, type IResponse } from '@utils/Request';
 // interfaces
 interface IProps {
   data: {
-    name: string;
+    username: string;
+    fullname: string;
     email: string;
-    lastname: string;
   };
 }
 
 interface IFormProps {
-  name: string;
+  username: string;
+  fullname: string;
   email: string;
-  lastname: string;
 }
 
 const FormMain: React.FC<IProps> = ({ data }) => {
   const { showAlert, hideAlert } = useAlert();
-
   const [loading, setLoading] = useState<boolean>(false);
   const [formValues, setFormValues] = useState<IFormProps>({
-    name: data.name,
-    email: data.email,
-    lastname: data.lastname,
+    username: '',
+    fullname: '',
+    email: '',
   });
 
+
+  useEffect(() => {
+    // Load user data from localStorage when component mounts
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+      try {
+        const userData = JSON.parse(userJson);
+        setFormValues({
+          username: userData.username || '',
+          fullname: userData.fullname || userData.full_name || '',
+          email: userData.email || '',
+        });
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+  
   /**
    * Handles the change event for input fields in the form.
    *
@@ -106,14 +123,14 @@ const FormMain: React.FC<IProps> = ({ data }) => {
         <div className='form-line'>
           <div className='one-line'>
             <div className='label-line'>
-              <label htmlFor='name'>Name</label>
+              <label htmlFor='username'>Username</label>
             </div>
             <Input
               type='text'
-              name='name'
-              value={formValues.name}
+              name='username'
+              value={formValues.username}
               maxLength={64}
-              placeholder='Enter your name'
+              placeholder='Enter your username'
               required
               onChange={handleChange}
             />
@@ -122,14 +139,14 @@ const FormMain: React.FC<IProps> = ({ data }) => {
         <div className='form-line'>
           <div className='one-line'>
             <div className='label-line'>
-              <label htmlFor='lastname'>Last name</label>
+              <label htmlFor='fullname'>Full name</label>
             </div>
             <Input
               type='text'
-              name='lastname'
-              value={formValues.lastname}
+              name='fullname'
+              value={formValues.fullname}
               maxLength={64}
-              placeholder='Enter your last name'
+              placeholder='Enter your full name'
               required
               onChange={handleChange}
             />
