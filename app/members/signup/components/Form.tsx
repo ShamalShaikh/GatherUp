@@ -19,9 +19,9 @@ import Request, { type IRequest, type IResponse } from '@utils/Request';
 // interfaces
 interface IFormProps {
   tos: boolean;
-  name: string;
+  username: string;
+  fullname: string;
   email: string;
-  lastname: string;
   password: string;
 }
 
@@ -30,9 +30,9 @@ const Form: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [formValues, setFormValues] = useState<IFormProps>({
-    name: '',
+    username: '',
+    fullname: '',
     email: '',
-    lastname: '',
     password: '',
     tos: false,
   });
@@ -88,11 +88,13 @@ const Form: React.FC = () => {
     setLoading(true);
 
     const parameters: IRequest = {
-      url: 'v1/signin/password',
+      url: 'register',
       method: 'POST',
       postData: {
+        username: formValues.username,
         email: formValues.email,
         password: formValues.password,
+        full_name: formValues.fullname,
       },
     };
 
@@ -100,10 +102,27 @@ const Form: React.FC = () => {
 
     const { status, data } = req;
 
-    if (status === 200) {
-      window.location.href = '/members/activate/account';
+    if (status === 201) {
+      // Store JWT token and user data
+      if (data.results?.token) {  
+        localStorage.setItem('token', data.results.token);
+        localStorage.setItem('user', JSON.stringify({
+          username: formValues.username,
+          email: formValues.email,
+          fullname: formValues.fullname,
+          password: formValues.password,
+          isLoggedIn: true,
+          // Add any other user data returned from the API
+          ...(data.results?.user || {}) 
+        }));
+        
+        // Redirect to home page
+        window.location.href = '/';
+      } else {
+        showAlert({ type: 'error', text: 'Authentication token missing' });
+      }
     } else {
-      showAlert({ type: 'error', text: data.title ?? '' });
+      showAlert({ type: 'error', text: data.title ?? 'Error in Sign Up' });
     }
 
     setLoading(false);
@@ -163,14 +182,14 @@ const Form: React.FC = () => {
         <div className='form-line'>
           <div className='one-line'>
             <div className='label-line'>
-              <label htmlFor='name'>Name</label>
+              <label htmlFor='username'>Username</label>
             </div>
             <Input
               type='text'
-              name='name'
-              value={formValues.name}
+              name='username'
+              value={formValues.username}
               maxLength={64}
-              placeholder='Enter your name'
+              placeholder='Enter your username'
               required
               onChange={handleChange}
             />
@@ -179,14 +198,14 @@ const Form: React.FC = () => {
         <div className='form-line'>
           <div className='one-line'>
             <div className='label-line'>
-              <label htmlFor='lastname'>Last name</label>
+              <label htmlFor='fullname'>Full name</label>
             </div>
             <Input
               type='text'
-              name='lastname'
-              value={formValues.lastname}
+              name='fullname'
+              value={formValues.fullname}
               maxLength={64}
-              placeholder='Enter your last name'
+              placeholder='Enter your full name'
               required
               onChange={handleChange}
             />

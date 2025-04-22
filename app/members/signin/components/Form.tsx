@@ -17,7 +17,7 @@ import Request, { type IRequest, type IResponse } from '@utils/Request';
 
 // interfaces
 interface IFormProps {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -26,7 +26,7 @@ const Form: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [formValues, setFormValues] = useState<IFormProps>({
-    email: '',
+    username: '',
     password: '',
   });
 
@@ -65,22 +65,37 @@ const Form: React.FC = () => {
     setLoading(true);
 
     const parameters: IRequest = {
-      url: 'v1/signin/password',
+      url: 'login',      // TODO: Change to the correct endpoint
       method: 'POST',
       postData: {
-        email: formValues.email,
+        // TODO: Add the correct data
+        username: formValues.username,
         password: formValues.password,
       },
     };
 
     const req: IResponse = await Request.getResponse(parameters);
-
+    
     const { status, data } = req;
 
     if (status === 200) {
-      // Handle successful response
+      // Store JWT token and user data
+      if (data.results?.token) {  
+        localStorage.setItem('token', data.results.token);
+        localStorage.setItem('user', JSON.stringify({
+          username: formValues.username,
+          isLoggedIn: true
+          // Add any other user data returned from the API
+          // ...data.results
+        }));
+        
+        // Redirect to home page
+        window.location.href = '/';
+      } else {
+        showAlert({ type: 'error', text: 'Authentication token missing' });
+      }
     } else {
-      showAlert({ type: 'error', text: data.title ?? '' });
+      showAlert({ type: 'error', text: data.title ?? 'Error in Sign In' });
     }
 
     setLoading(false);
@@ -140,14 +155,14 @@ const Form: React.FC = () => {
         <div className='form-line'>
           <div className='one-line'>
             <div className='label-line'>
-              <label htmlFor='email'>E-mail address</label>
+              <label htmlFor='username'>Username</label>
             </div>
             <Input
-              type='email'
-              name='email'
-              value={formValues.email}
+              type='text'
+              name='username'
+              value={formValues.username}
               maxLength={128}
-              placeholder='Enter your e-mail address'
+              placeholder='Enter your username'
               required
               onChange={handleChange}
             />

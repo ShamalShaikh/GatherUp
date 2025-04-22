@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import Link from 'next/link';
 
@@ -11,12 +11,27 @@ import useClickOutside from '@hooks/useClickOutside';
 import Dropdown from '@components/Dropdown/Dropdown';
 import DropdownItem from '@components/Dropdown/DropdownItem';
 import ProfilePhoto from '@components/Profile/ProfilePhoto';
+import ButtonLink from '@components/Button/ButtonLink';
 
 const Header: React.FC = () => {
   const wrapperRef = useRef<any>(null);
 
   const [menu, setMenu] = useState<boolean>(false);
   const [dropdown, setDropdown] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const user = localStorage.getItem('user');
+    if (user) {
+      const parsedUser = JSON.parse(user);
+      if (parsedUser.isLoggedIn) {
+        setIsLoggedIn(true);
+        setUserData(parsedUser);
+      }
+    }
+  }, []);
 
   /**
    * This is a functional component for the Header.
@@ -64,33 +79,51 @@ const Header: React.FC = () => {
           </Link>
         </div>
         <div className='members' ref={wrapperRef}>
-          {/* <Link href='/members/signup' className='blue'>
-            Sign up
-          </Link>
-          <span>or</span>
-          <ButtonLink color='blue-filled' text='Sign in' url={`members/signin`} /> */}
-          <Link href='/members/account'>
-            <ProfilePhoto image='https://www.cenksari.com/content/profile.jpg' size='small' />
-          </Link>
-          <button
-            type='button'
-            className='menu-opener'
-            onClick={() => {
-              setDropdown(!dropdown);
-            }}
-          >
-            Cenk
-            <span className='material-symbols-outlined'>
-              {dropdown ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-            </span>
-          </button>
-          {dropdown && (
-            <Dropdown color='gray'>
-              <DropdownItem url='members/tickets' text='My tickets' />
-              <DropdownItem url='members/account' text='My account' />
-              <hr />
-              <DropdownItem url='members/signout' text='Sign out' />
-            </Dropdown>
+        {!isLoggedIn ? (
+            <>
+              <Link href='/members/signup' className='blue'>
+                Sign up
+              </Link>
+              <span>or</span>
+              <ButtonLink color='blue-filled' text='Sign in' url={`members/signin`} />
+            </>
+          ) : (
+            <>
+              <Link href='/members/account'>
+                <ProfilePhoto 
+                  image={userData?.profileImage || 'https://www.cenksari.com/content/profile.jpg'} 
+                  size='small' 
+                />
+              </Link>
+              <button
+                type='button'
+                className='menu-opener'
+                onClick={() => {
+                  setDropdown(!dropdown);
+                }}
+              >
+                {userData?.username || 'User'}
+                <span className='material-symbols-outlined'>
+                  {dropdown ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+                </span>
+              </button>
+              {dropdown && (
+                <Dropdown color='gray'>
+                  <DropdownItem url='members/tickets' text='My tickets' />
+                  <DropdownItem url='members/account' text='My account' />
+                  <hr />
+                  <DropdownItem 
+                    url='#' 
+                    text='Sign out' 
+                    onClick={() => {
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('user');
+                      window.location.href = '/';
+                    }} 
+                  />
+                </Dropdown>
+              )}
+            </>
           )}
         </div>
       </div>

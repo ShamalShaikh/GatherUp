@@ -1,6 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0');
 @import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap&subset=latin,latin-ext');
 
+/* Add these global styles for dropdown visibility */
+html, 
+body, 
+#__next, 
+main, 
+[class*="container"], 
+[class*="wrapper"] {
+  overflow: visible !important;
+}
+
 html,
 body,
 input,
