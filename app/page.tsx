@@ -1,3 +1,5 @@
+'use client';
+
 // components
 import Master from '@components/Layout/Master';
 import Section from '@components/Section/Section';
@@ -6,258 +8,269 @@ import EventCard from '@components/Card/EventCard';
 import CardGroup from '@components/Card/CardGroup';
 
 import FormSearch from './home/components/FormSearch';
-import CircleButtons from './home/components/CircleButtons';
 
-const Page: React.FC = () => (
-  <Master>
-    <Section className='white-background'>
-      <div className='container'>
-        <div className='center'>
-          <Heading type={1} color='gray' text='Discover' />
-          <p className='gray'>Discover, search and filter best events in London.</p>
-        </div>
-      </div>
+import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
 
-      <div className='center'>
+// Import the Request utility
+import Request, { type IRequest, type IResponse, buildUrl } from '@utils/Request';
+
+// Define the event interface to match your API response structure
+interface Event {
+  _id: string;
+  name: string;
+  date_time: string;
+  image_url: string;
+  venue: {
+    name: string;
+    city: string;
+    state: string;
+    country: string;
+  };
+  price_range?: {
+    min?: number | null;
+    max?: number | null;
+    currency?: string | null;
+  };
+  // Add sources for ticket links
+  sources?: {
+    ticketmaster?: { 
+      url: string;
+      ticket_availability?: string;
+    };
+    eventbrite?: { 
+      url: string;
+    };
+  };
+  // Add dto_date_time for formatted date
+  dto_date_time?: string;
+}
+
+// Helper function to format price to string
+const formatPrice = (price: number | null | undefined, currency: string | null | undefined = 'USD'): string => {
+  if (price === null || price === undefined) return 'Price TBD';
+  // If we have a currency, add the currency symbol
+  if (currency) {
+    return `From ${currency === 'USD' ? '$' : currency}${price}`;
+  }
+  return `From ${price}`;
+};
+
+const Page: React.FC = () => {
+  const [latestEvents, setLatestEvents] = useState<Event[]>([]);
+  const [moreEvents, setMoreEvents] = useState<Event[]>([]);
+  const [editorsChoice, setEditorsChoice] = useState<Event[]>([]);
+  const [kidsEvents, setKidsEvents] = useState<Event[]>([]);
+  
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        // Use the Request utility to fetch events
+        const parameters: IRequest = {
+          url: 'getLandingEvents',
+          method: 'GET'
+        };
+        
+        // Show loading state if needed
+        
+        // Make the request using the utility
+        // The base URL is configured in Request.ts as http://127.0.0.1:8080
+        // Adding console.log to debug the full URL being called
+        console.log('Fetching from:', `${buildUrl()}/${parameters.url}`);
+        
+        const response: IResponse = await Request.getResponse(parameters);
+        
+        // Log the response for debugging
+        console.log('API Response:', response);
+        
+        // Process the response
+        if (response.status === 200) {
+          // Process data if it exists
+          if (response.data && response.data.data) {
+            processEventsData(response.data.data);
+          } else {
+            console.warn('No event data found in the response');
+            useMockData();
+          }
+        } else {
+          console.error('API error:', response.data.title);
+          useMockData();
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        useMockData();
+      }
+    };
+    
+    // Helper function to process events data
+    const processEventsData = (data: Event[]) => {
+      // Process events to add formatted dates
+      const events: Event[] = data.map((event: Event) => {
+        // Format the date_time to a more readable format
+        if (event.date_time) {
+          try {
+            const eventDate = new Date(event.date_time);
+            if (!isNaN(eventDate.getTime())) {
+              event.dto_date_time = format(eventDate, 'MMM dd, yyyy - h:mm a');
+            } else {
+              console.warn('Invalid date:', event.date_time);
+              event.dto_date_time = 'Date TBD';
+            }
+          } catch (error) {
+            console.error('Error formatting date:', error);
+            event.dto_date_time = 'Date TBD';
+          }
+        } else {
+          event.dto_date_time = 'Date TBD';
+        }
+        return event;
+      });
+      
+      // Split events into different categories
+      setLatestEvents(events.slice(0, 6));
+      setMoreEvents(events.slice(6, 12));
+      setEditorsChoice(events.slice(12, 18));
+      setKidsEvents(events.slice(18, 24));
+    };
+    
+    // Helper function to use mock data when API fails
+    const useMockData = () => {
+      // Create some mock event data for development purposes
+      const mockEvents: Event[] = Array(24).fill(null).map((_, index) => ({
+        _id: `mock-${index}`,
+        name: `Mock Event ${index + 1}`,
+        date_time: new Date(Date.now() + 86400000 * (index % 30)).toISOString(),
+        dto_date_time: format(new Date(Date.now() + 86400000 * (index % 30)), 'MMM dd, yyyy - h:mm a'),
+        image_url: `https://picsum.photos/400/225?random=${index}`,
+        venue: {
+          name: `Venue ${index % 5 + 1}`,
+          city: ['New York', 'Los Angeles', 'Chicago', 'Miami', 'Seattle'][index % 5],
+          state: ['NY', 'CA', 'IL', 'FL', 'WA'][index % 5],
+          country: 'US'
+        },
+        classifications: {
+          segment: ['Arts & Theatre', 'Music', 'Sports', 'Family', 'Other'][index % 5],
+          genre: ['Theatre', 'Concert', 'Football', 'Kids', 'Festival'][index % 5],
+          subGenre: index % 3 === 0 ? 'Special' : undefined
+        },
+        price_range: {
+          min: 25 + (index % 10) * 5,
+          max: 75 + (index % 15) * 10,
+          currency: 'USD'
+        },
+        sources: index % 3 === 0 
+          ? { ticketmaster: { url: `https://www.ticketmaster.com/event/mock-${index}`, ticket_availability: 'available' } }
+          : index % 3 === 1
+          ? { eventbrite: { url: `https://www.eventbrite.com/e/mock-${index}` } }
+          : undefined
+      }));
+      
+      // Use the mock data
+      setLatestEvents(mockEvents.slice(0, 6));
+      setMoreEvents(mockEvents.slice(6, 12));
+      setEditorsChoice(mockEvents.slice(12, 18));
+      setKidsEvents(mockEvents.slice(18, 24));
+    };
+    
+    fetchEvents();
+  }, []);
+
+  return (
+    <Master>
+      <Section className='white-background'>
         <div className='container'>
-          <div className='top-search'>
-            <FormSearch />
+          <div className='center'>
+            <Heading type={1} color='gray' text='Discover' />
+            <p className='gray'>Discover, search and filter best events in London.</p>
           </div>
         </div>
-        <div className='circle-buttons'>
-          <CircleButtons />
+
+        <div className='center'>
+          <div className='container'>
+            <div className='top-search'>
+              <FormSearch />
+            </div>
+          </div>
         </div>
-      </div>
-    </Section>
+      </Section>
 
-    <CardGroup url='list' title='Latest events' color='blue' background='gray'>
-      <EventCard
-        url='1'
-        from='20'
-        color='blue'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='blue'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='10'
-        color='blue'
-        when='Sun, Mar 14, 2024 15:00'
-        name='Event name goes here'
-        venue='Wembley Stadium'
-        image='https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='60'
-        color='blue'
-        when='Mon, Jul 2, 2024 20:00'
-        name='Event name goes here'
-        venue='Eventim Apollo'
-        image='https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='20'
-        color='blue'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='blue'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-    </CardGroup>
+      <CardGroup url='list' title='Latest events' color='blue' background='gray'>
+        {latestEvents.length > 0 ? (
+          latestEvents.map((event, index) => (
+            <EventCard
+              key={`latest-${index}`}
+              url={event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url || `/events/${event._id}`}
+              color='blue'
+              when={event.dto_date_time || 'TBD'}
+              name={event.name || 'Event name goes here'}
+              venue={event.venue?.name || 'Venue TBD'}
+              image={event.image_url || 'https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'}
+              external={!!(event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url)}
+            />
+          ))
+        ) : (
+          <p>Loading events...</p>
+        )}
+      </CardGroup>
 
-    <CardGroup url='list' title='More events' color='red' background='white'>
-      <EventCard
-        url='1'
-        from='20'
-        color='red'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='red'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='10'
-        color='red'
-        when='Sun, Mar 14, 2024 15:00'
-        name='Event name goes here'
-        venue='Wembley Stadium'
-        image='https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='60'
-        color='red'
-        when='Mon, Jul 2, 2024 20:00'
-        name='Event name goes here'
-        venue='Eventim Apollo'
-        image='https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='20'
-        color='red'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='red'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-    </CardGroup>
+      <CardGroup url='list' title='More events' color='red' background='white'>
+        {moreEvents.length > 0 ? (
+          moreEvents.map((event, index) => (
+            <EventCard
+              key={`more-${index}`}
+              url={event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url || `/events/${event._id}`}
+              color='red'
+              when={event.dto_date_time || 'TBD'}
+              name={event.name || 'Event name goes here'}
+              venue={event.venue?.name || 'Venue TBD'}
+              image={event.image_url || 'https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'}
+              external={!!(event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url)}
+            />
+          ))
+        ) : (
+          <p>Loading events...</p>
+        )}
+      </CardGroup>
 
-    <CardGroup url='list' title='Editors choice' color='orange' background='gray'>
-      <EventCard
-        url='1'
-        from='20'
-        color='orange'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='orange'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='10'
-        color='orange'
-        when='Sun, Mar 14, 2024 15:00'
-        name='Event name goes here'
-        venue='Wembley Stadium'
-        image='https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='60'
-        color='orange'
-        when='Mon, Jul 2, 2024 20:00'
-        name='Event name goes here'
-        venue='Eventim Apollo'
-        image='https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='20'
-        color='orange'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='orange'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-    </CardGroup>
+      <CardGroup url='list' title='Editors choice' color='orange' background='gray'>
+        {editorsChoice.length > 0 ? (
+          editorsChoice.map((event, index) => (
+            <EventCard
+              key={`editors-${index}`}
+              url={event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url || `/events/${event._id}`}
+              color='orange'
+              when={event.dto_date_time || 'TBD'}
+              name={event.name || 'Event name goes here'}
+              venue={event.venue?.name || 'Venue TBD'}
+              image={event.image_url || 'https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'}
+              external={!!(event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url)}
+            />
+          ))
+        ) : (
+          <p>Loading events...</p>
+        )}
+      </CardGroup>
 
-    <CardGroup url='list' title='For kids' color='purple' background='white'>
-      <EventCard
-        url='1'
-        from='20'
-        color='purple'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='purple'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='10'
-        color='purple'
-        when='Sun, Mar 14, 2024 15:00'
-        name='Event name goes here'
-        venue='Wembley Stadium'
-        image='https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='60'
-        color='purple'
-        when='Mon, Jul 2, 2024 20:00'
-        name='Event name goes here'
-        venue='Eventim Apollo'
-        image='https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='20'
-        color='purple'
-        when='Tue, Sep 21, 2024 19:00'
-        name='Event name goes here'
-        venue='Royal Albert Hall'
-        image='https://images.unsplash.com/photo-1531058020387-3be344556be6?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-      <EventCard
-        url='1'
-        from='25'
-        color='purple'
-        when='Wed, Aug 9, 2024 22:00'
-        name='Event name goes here'
-        venue='o2 Arena'
-        image='https://images.unsplash.com/photo-1472691681358-fdf00a4bfcfe?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-      />
-    </CardGroup>
-  </Master>
-);
+      <CardGroup url='list' title='For kids' color='purple' background='white'>
+        {kidsEvents.length > 0 ? (
+          kidsEvents.map((event, index) => (
+            <EventCard
+              key={`kids-${index}`}
+              url={event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url || `/events/${event._id}`}
+              color='purple'
+              when={event.dto_date_time || 'TBD'}
+              name={event.name || 'Event name goes here'}
+              venue={event.venue?.name || 'Venue TBD'}
+              image={event.image_url || 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'}
+              external={!!(event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url)}
+            />
+          ))
+        ) : (
+          <p>Loading events...</p>
+        )}
+      </CardGroup>
+    </Master>
+  );
+};
 
 export default Page;

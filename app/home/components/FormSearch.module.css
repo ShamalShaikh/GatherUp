@@ -412,7 +412,7 @@
 
 .categoriesContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 1rem;
   justify-content: center;
   justify-items: center;
@@ -486,21 +486,25 @@
 /* Mobile adaptations for categories */
 @media (max-width: 767px) {
   .categoriesContainer {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
     gap: 0.75rem;
   }
   
   .categoryButton {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
   }
   
   .categoryButton .material-symbols-outlined {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
   
   .categoryText {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
+  }
+  
+  .categoryPlaceholder {
+    width: 65px;
+    height: 65px;
   }
 }
 

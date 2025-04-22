@@ -8,6 +8,7 @@ export interface IResponse {
   data: {
     title?: string;
     results?: any;
+    data?: any;
   };
   status?: number;
 }
@@ -31,7 +32,7 @@ const createAuth = base64.encode(`${auth.username}:${auth.password}`);
  *
  * @return {string} The base URL for API requests.
  */
-const buildUrl = (): string => {
+export const buildUrl = (): string => {
   return 'http://127.0.0.1:8080';
   // 'https://website-api.com';
 };
@@ -40,12 +41,24 @@ const buildUrl = (): string => {
  * Parses a JSON string into a JavaScript object.
  *
  * @param {string} value - The JSON string to be parsed.
- * @return {any} The parsed JavaScript object.
+ * @return {any} The parsed JavaScript object or an error object.
  */
 const parseResults = (value: string): any => {
-  const parse = JSON.parse(value);
-
-  return parse;
+  try {
+    // Try to parse the JSON string
+    const parse = JSON.parse(value);
+    return parse;
+  } catch (error) {
+    // If parsing fails, return an error object
+    console.error('Failed to parse JSON response:', error);
+    console.error('Raw response text:', value.substring(0, 200) + '...');
+    
+    // Return a standard error object
+    return {
+      title: 'Invalid response format',
+      error: 'The server response could not be parsed as JSON'
+    };
+  }
 };
 
 /**
@@ -86,7 +99,7 @@ const getResponse = async (parameters: IRequest): Promise<IResponse> => {
     return d;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      const err = error as AxiosError;
+      const err = error;
 
       // Handle 401 Unauthorized - token expired or invalid
       if (err.response?.status === 401) {
@@ -100,34 +113,28 @@ const getResponse = async (parameters: IRequest): Promise<IResponse> => {
         }
       }
 
-      const responseText: string = err.request?.responseText;
-
+      const responseText: string = err.request?.responseText || '';
       let parsedResults;
 
-      if (responseText !== '') {
+      if (responseText && responseText.trim() !== '') {
         parsedResults = parseResults(responseText);
       } else {
-        parsedResults = { title: err.message };
+        parsedResults = { title: err.message || 'Network error occurred' };
       }
 
-      const d: IResponse = {
+      return {
         data: parsedResults,
-        status: err.response?.status,
+        status: err.response?.status || 0,
       };
-
-      return d;
+    } else {
+      // Handle non-Axios errors
+      return {
+        data: {
+          title: error instanceof Error ? error.message : 'Unknown error occurred',
+        },
+        status: 0,
+      };
     }
-
-    const err = error as Error;
-
-    const d: IResponse = {
-      data: {
-        title: err.message,
-      },
-      status: 0,
-    };
-
-    return d;
   }
 };
 

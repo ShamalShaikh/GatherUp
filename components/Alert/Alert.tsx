@@ -12,13 +12,17 @@ const Alert: React.FC = () => {
   const { alert, hideAlert } = useAlert();
 
   useEffect(() => {
+    // Set timeout based on alert type - 1 second for success alerts, 7 seconds for others
+    const timeoutDuration = alert.type === 'success' ? 1000 : 7000;
+    
     const timeout = setTimeout(() => {
       hideAlert();
-    }, 7000);
+    }, timeoutDuration);
 
     return () => {
       clearTimeout(timeout);
     };
+    // Only depend on hideAlert to keep the dependency array consistent
   }, [hideAlert]);
 
   if (alert.show === true) {
@@ -31,7 +35,8 @@ const Alert: React.FC = () => {
               <span className='material-symbols-outlined'>close</span>
             </button>
           </div>
-          <Progress ms={7000} />
+          {/* Set Progress duration based on alert type */}
+          <Progress ms={alert.type === 'success' ? 1000 : 7000} />
         </div>
       </div>
     );

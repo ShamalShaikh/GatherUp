@@ -304,29 +304,36 @@ const CategoryButton: React.FC<CategoryButtonProps> = ({ icon, text, isSelected,
 
 // Available categories
 const eventCategories = [
+  { icon: 'music_note', text: 'Alternative' },
+  { icon: 'theater_comedy', text: 'Comedy' },
+  { icon: 'nightlife', text: 'Dance/Electronic' },
+  { icon: 'keyboard_voice', text: 'Hip-Hop/Rap' },
+  { icon: 'electric_bolt', text: 'Metal' },
+  { icon: 'diversity_3', text: 'Miscellaneous' },
+  { icon: 'category', text: 'Other' },
+  { icon: 'emoji_people', text: 'Performance Art' },
+  { icon: 'music_note', text: 'Pop' },
   { icon: 'theater_comedy', text: 'Theatre' },
-  { icon: 'stadium', text: 'Concert' },
-  { icon: 'child_care', text: 'Kids' },
-  { icon: 'sports_football', text: 'Sports' },
-  { icon: 'attractions', text: 'Attractions' },
-  { icon: 'piano', text: 'Musical' },
-  { icon: 'comedy_mask', text: 'Comedy' },
-  { icon: 'festival', text: 'Festival' }
+  { icon: 'help', text: 'Undefined' },
+  { icon: 'question_mark', text: 'Unknown' }
 ];
 
 // Function to format ISO date to readable format
 const formatEventDate = (isoDate: string): string => {
   try {
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) {
+      return 'Date not available';
+    }
     return format(date, 'MMM dd, yyyy - h:mm a');
   } catch (error) {
     console.error('Error formatting date:', error);
-    return isoDate;
+    return 'Date not available';
   }
 };
 
 const FormSearch: React.FC = () => {
-  const { showAlert } = useAlert();
+  const { showAlert, hideAlert } = useAlert();
   const [isMounted, setIsMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -438,7 +445,7 @@ const FormSearch: React.FC = () => {
         break;
     }
   };
-
+  
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -619,11 +626,16 @@ const FormSearch: React.FC = () => {
         
         setSearchResults(results);
         
-        // Show success message
+        // Show success message for 1 second
         showAlert({
           type: 'success',
           text: `Found ${results.length} events matching your criteria`
         });
+        
+        // Auto-dismiss the success message after 1 second
+        setTimeout(() => {
+          hideAlert();
+        }, 1000);
       } else {
         // Show error message
         showAlert({
@@ -944,28 +956,27 @@ const FormSearch: React.FC = () => {
                         </span>
                         <span className={styles.eventCategory}>
                           <span className="material-symbols-outlined">
-                            {/* Map segment or genre to appropriate icon */}
-                            {event.classifications.genre.toLowerCase().includes('concert') ? 'stadium' : 
-                             event.classifications.genre.toLowerCase().includes('theatre') ? 'theater_comedy' :
-                             event.classifications.genre.toLowerCase().includes('sports') ? 'sports_football' :
-                             event.classifications.segment.toLowerCase().includes('arts') ? 'theater_comedy' :
+                            {/* Map genre to appropriate icon with null checks */}
+                            {event.classifications?.genre?.toLowerCase().includes('alternative') ? 'music_note' :
+                             event.classifications?.genre?.toLowerCase().includes('comedy') ? 'theater_comedy' :
+                             event.classifications?.genre?.toLowerCase().includes('dance') || event.classifications?.genre?.toLowerCase().includes('electronic') ? 'nightlife' :
+                             event.classifications?.genre?.toLowerCase().includes('hip-hop') || event.classifications?.genre?.toLowerCase().includes('rap') ? 'keyboard_voice' :
+                             event.classifications?.genre?.toLowerCase().includes('metal') ? 'electric_bolt' :
+                             event.classifications?.genre?.toLowerCase().includes('miscellaneous') ? 'diversity_3' :
+                             event.classifications?.genre?.toLowerCase().includes('performance art') ? 'emoji_people' :
+                             event.classifications?.genre?.toLowerCase().includes('pop') ? 'music_note' :
+                             event.classifications?.genre?.toLowerCase().includes('theatre') ? 'theater_comedy' :
+                             event.classifications?.genre?.toLowerCase().includes('undefined') || event.classifications?.genre?.toLowerCase().includes('unknown') ? 'help' :
                              'event'}
                           </span>
-                          {event.classifications.genre || event.classifications.segment}
-                          {event.classifications.subGenre && ` - ${event.classifications.subGenre}`}
+                          {event.classifications?.genre || event.classifications?.segment || 'Uncategorized'}
+                          {event.classifications?.subGenre && ` - ${event.classifications.subGenre}`}
                         </span>
                       </div>
                       
                       {/* Price and ticket availability */}
                       <div className={styles.eventActions}>
-                        {event.price_range && (
-                          <div className={styles.eventPrice}>
-                            <span className="material-symbols-outlined">sell</span>
-                            {event.price_range.min !== null && event.price_range.max !== null 
-                              ? `${event.price_range.min} - ${event.price_range.max} ${event.price_range.currency || 'USD'}` 
-                              : 'Price not available'}
-                          </div>
-                        )}
+                        {/* Removing price range information */}
                         
                         {event.sources?.ticketmaster && (
                           <div className={styles.ticketStatus}>
