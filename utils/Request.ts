@@ -33,7 +33,7 @@ const createAuth = base64.encode(`${auth.username}:${auth.password}`);
  * @return {string} The base URL for API requests.
  */
 export const buildUrl = (): string => {
-  return 'http://127.0.0.1:8080';
+  return process.env.NEXT_PUBLIC_API_BASE_URL;
   // 'https://website-api.com';
 };
 
