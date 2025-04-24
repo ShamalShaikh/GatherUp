@@ -12,6 +12,7 @@ import Input from '@components/Form/Input';
 import Switch from '@components/Form/Switch';
 import Button from '@components/Button/Button';
 import Loader from '@components/Loader/Loader';
+import CategoryButton from '@components/../app/members/signup/components/CategoryButton';
 
 // utils
 import Request, { type IRequest, type IResponse } from '@utils/Request';
@@ -36,6 +37,14 @@ const Form: React.FC = () => {
     password: '',
     tos: false,
   });
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const handleCategoryToggle = (category: string): void => {
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((cat) => cat !== category) : [...prev, category]
+    );
+  };
 
   /**
    * Handles the change event for input fields in the form.
@@ -95,6 +104,7 @@ const Form: React.FC = () => {
         email: formValues.email,
         password: formValues.password,
         full_name: formValues.fullname,
+        categories: selectedCategories,
       },
     };
 
@@ -104,18 +114,21 @@ const Form: React.FC = () => {
 
     if (status === 201) {
       // Store JWT token and user data
-      if (data.results?.token) {  
+      if (data.results?.token) {
         localStorage.setItem('token', data.results.token);
-        localStorage.setItem('user', JSON.stringify({
-          username: formValues.username,
-          email: formValues.email,
-          fullname: formValues.fullname,
-          password: formValues.password,
-          isLoggedIn: true,
-          // Add any other user data returned from the API
-          ...(data.results?.user || {}) 
-        }));
-        
+        localStorage.setItem(
+          'user',
+          JSON.stringify({
+            username: formValues.username,
+            email: formValues.email,
+            fullname: formValues.fullname,
+            password: formValues.password,
+            isLoggedIn: true,
+            // Add any other user data returned from the API
+            ...(data.results?.user || {}),
+          })
+        );
+
         // Redirect to home page
         window.location.href = '/';
       } else {
@@ -131,6 +144,21 @@ const Form: React.FC = () => {
   if (loading) {
     return <Loader type='inline' color='gray' text='Hang on a second' />;
   }
+
+  const eventCategories = [
+    { icon: 'music_note', text: 'Alternative' },
+    { icon: 'theater_comedy', text: 'Comedy' },
+    { icon: 'nightlife', text: 'Dance/Electronic' },
+    { icon: 'keyboard_voice', text: 'Hip-Hop/Rap' },
+    { icon: 'electric_bolt', text: 'Metal' },
+    { icon: 'diversity_3', text: 'Miscellaneous' },
+    { icon: 'category', text: 'Other' },
+    { icon: 'emoji_people', text: 'Performance Art' },
+    { icon: 'music_note', text: 'Pop' },
+    { icon: 'theater_comedy', text: 'Theatre' },
+    { icon: 'help', text: 'Undefined' },
+    { icon: 'question_mark', text: 'Unknown' },
+  ];
 
   return (
     <form
@@ -256,6 +284,25 @@ const Form: React.FC = () => {
             </Link>
           </Switch>
         </div>
+        <div className='form-line'>
+          <div className='label-line'>
+            <label htmlFor='categories'>Choose your preference(s)</label>
+          </div>
+          <div className='form-categories'>
+            <div className='categories-container'>
+              {eventCategories.map((category) => (
+                <CategoryButton
+                  key={category.text}
+                  icon={category.icon}
+                  text={category.text}
+                  isSelected={selectedCategories.includes(category.text)}
+                  onClick={() => handleCategoryToggle(category.text)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className='form-buttons'>
           <Button type='submit' color='blue-filled' text='Sign up' />
         </div>

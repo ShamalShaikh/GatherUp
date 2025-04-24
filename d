@@ -1,0 +1,62 @@
+[33mcommit 276251fd0fc971304fe333d01d7b766165c4d9dd[m[33m ([m[1;36mHEAD -> [m[1;32mreact[m[33m, [m[1;31morigin/react[m[33m)[m
+Author: shamalshaikh <shamalshaikh@gmail.com>
+Date:   Mon Apr 21 21:22:48 2025 -0600
+
+    landing page events and categories updated
+
+[33mcommit 380cc12bec4e672224f1c98539c95baa8e02feb0[m
+Author: shamalshaikh <shamalshaikh@gmail.com>
+Date:   Sun Apr 13 19:45:28 2025 -0600
+
+    final small changes
+
+[33mcommit 8f7e93f8fdb4065dcfc8e909af5801635d724f55[m
+Author: shamalshaikh <shamalshaikh@gmail.com>
+Date:   Sun Apr 13 17:03:04 2025 -0600
+
+    implemented searchEvents and buy tickets
+
+[33mcommit 36b887742bb542cb1f047429dcb7ecf239bb4d86[m
+Author: shamalshaikh <shamalshaikh@gmail.com>
+Date:   Sat Apr 12 20:48:37 2025 -0600
+
+    improved filter and buttons for categories
+
+[33mcommit 46e7fc02e953c93eb2c671dd2c1a213e68ec0b58[m
+Author: shamalshaikh <shamalshaikh@gmail.com>
+Date:   Sat Apr 12 18:31:49 2025 -0600
+
+    css changes for filter
+
+[33mcommit 40c4205e9cf9452641808eb2d481a5e0dd929a59[m
+Author: shamalshaikh <shamalshaikh@gmail.com>
+Date:   Sat Apr 12 16:46:05 2025 -0600
+
+    user register and login with session
+
+[33mcommit 8e8cea80b8387779300fdc790c97646b499fddd3[m
+Author: shamalshaikh <shamalshaikh@gmail.com>
+Date:   Tue Apr 1 14:21:43 2025 -0600
+
+    react template changes
+
+[33mcommit fbbd97a33254469ee1372eb56f40e1f2391117a4[m
+Merge: f51a2b7 8e1175b
+Author: juPark2468 <jupark2468@gmail.com>
+Date:   Tue Mar 25 14:29:11 2025 -0600
+
+    Merge pull request #1 from ShamalShaikh/localUI
+    
+    Pushing the local UI changes remotely
+
+[33mcommit 8e1175b503c124ae75a700ee9a546ec3342c18f3[m[33m ([m[1;31morigin/localUI[m[33m, [m[1;32mlocalUI[m[33m)[m
+Author: juPark2468 <jupark2468@gmail.com>
+Date:   Tue Mar 25 14:27:58 2025 -0600
+
+    Pushing the local UI changes remotely
+
+[33mcommit f51a2b789c9aeeb63048acd6f5b366fd292a1979[m[33m ([m[1;32mmain[m[33m)[m
+Author: ShamalShaikh <58035908+ShamalShaikh@users.noreply.github.com>
+Date:   Wed Feb 12 02:53:14 2025 -0700
+
+    Initial commit
