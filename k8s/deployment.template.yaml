@@ -4,8 +4,6 @@ metadata:
   name: gatherup-ui-deployment
   labels:
     app: gatherup-ui
-  annotations:
-    redeploy-timestamp: "PLACEHOLDER"
 spec:
   replicas: 2
   selector:

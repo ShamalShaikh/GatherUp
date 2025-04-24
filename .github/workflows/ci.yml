@@ -64,10 +64,10 @@ jobs:
                s|REPO_NAME|${{ secrets.GAR_REPO }}|g; \
                s|IMAGE_NAME|gatherup-ui|g; \
                s|TAG|latest|g" \
-               s|PLACEHOLDER|$(date +%s)|g" \
                k8s/deployment.template.yaml > k8s/deployment.yaml
 
       - name: Deploy to GKE
         run: |
+          kubectl delete -f k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
