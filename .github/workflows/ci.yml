@@ -58,6 +58,15 @@ jobs:
         run: |
           gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.REGION }}
 
+      - name: Prepare deployment.yaml
+        run: |
+          sed "s|REGION|${{ env.REGION }}|g; \
+               s|PROJECT_ID|${{ secrets.GCP_PROJECT_ID }}|g; \
+               s|REPO_NAME|${{ secrets.GAR_REPO }}|g; \
+               s|IMAGE_NAME|gatherup-ui|g; \
+               s|TAG|latest|g" \
+               k8s/deployment.template.yaml > k8s/deployment.yaml
+
       - name: Deploy to GKE
         run: |
           kubectl apply -f k8s/deployment.yaml

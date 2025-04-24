@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: gatherup-ui-container
-          image: gcr.io/gatherup-453505/gatherup-ui:latest
+          image: REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/IMAGE_NAME:TAG
           ports:
             - containerPort: 3000
