@@ -15,6 +15,8 @@ import ButtonLink from '@components/Button/ButtonLink';
 
 // utils
 import Request, { type IRequest, type IResponse } from '@utils/Request';
+import CategoryButton from '../../signup/components/CategoryButton';
+import styles from '../../signup/components/CategoryButton.module.css';
 
 // interfaces
 interface IProps {
@@ -22,6 +24,7 @@ interface IProps {
     username: string;
     fullname: string;
     email: string;
+    preferences: string[];
   };
 }
 
@@ -29,7 +32,23 @@ interface IFormProps {
   username: string;
   fullname: string;
   email: string;
+  preferences?: string[];
 }
+
+const eventCategories = [
+  { icon: 'music_note', text: 'Alternative' },
+  { icon: 'theater_comedy', text: 'Comedy' },
+  { icon: 'nightlife', text: 'Dance/Electronic' },
+  { icon: 'keyboard_voice', text: 'Hip-Hop/Rap' },
+  { icon: 'electric_bolt', text: 'Metal' },
+  { icon: 'diversity_3', text: 'Miscellaneous' },
+  { icon: 'category', text: 'Other' },
+  { icon: 'emoji_people', text: 'Performance Art' },
+  { icon: 'music_note', text: 'Pop' },
+  { icon: 'theater_comedy', text: 'Theatre' },
+  { icon: 'help', text: 'Undefined' },
+  { icon: 'question_mark', text: 'Unknown' },
+];
 
 const FormMain: React.FC<IProps> = ({ data }) => {
   const { showAlert, hideAlert } = useAlert();
@@ -38,8 +57,8 @@ const FormMain: React.FC<IProps> = ({ data }) => {
     username: '',
     fullname: '',
     email: '',
+    preferences: [],
   });
-
 
   useEffect(() => {
     // Load user data from localStorage when component mounts
@@ -51,13 +70,14 @@ const FormMain: React.FC<IProps> = ({ data }) => {
           username: userData.username || '',
           fullname: userData.fullname || userData.full_name || '',
           email: userData.email || '',
+          preferences: userData.preferences || [],
         });
       } catch (error) {
         console.error('Error parsing user data:', error);
       }
     }
   }, []);
-  
+
   /**
    * Handles the change event for input fields in the form.
    *
@@ -188,6 +208,22 @@ const FormMain: React.FC<IProps> = ({ data }) => {
             required
             disabled
           />
+        </div>
+        <div className='form-line'>
+          <label htmlFor='preferences'>Preferences</label>
+          <div className='form-categories'>
+            <div className={styles.buttonContainer}>
+              {eventCategories.map((category) => (
+                <CategoryButton
+                  key={category.text}
+                  icon={category.icon}
+                  text={category.text}
+                  isSelected={formValues.preferences?.includes(category.text) ?? false} // Highlight if in preferences
+                  onClick={() => {}} // No-op to disable interaction
+                />
+              ))}
+            </div>
+          </div>
         </div>
         <div className='form-buttons'>
           <ButtonLink color='gray-overlay' text='Sign out' url='members/signout' />

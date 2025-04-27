@@ -10,21 +10,32 @@
     justify-content: center;
     text-align: center;
     min-width: 120px; /* Ensure consistent button width */
+    height: 50px;
     box-sizing: border-box; /* Include padding and border in width */
   }
   
+  .categoryButton:hover {
+    background-color: #51b1ff; /* Light gray on hover */
+  }
+
   .categorySelected {
-    border-color: blue;
+    border-color: blue; 
     background-color: lightblue;
     color: rgb(4, 0, 255);
   }
 
-  .categories-container{
+  .categoryButton {
+    border: 1px solid blue; /* Debugging: Add a border to the buttons */
+  }
+
+  .buttonContainer{
     display: flex; /* Use flexbox for layout */
     flex-wrap: wrap; /* Allow wrapping to the next line if needed */
     gap: 10px; /* Add spacing between buttons */
     justify-content: flex-start; /* Align buttons to the left */
     align-items: flex-start; /* Align items at the top */
+    width: 100%; /* Ensure the container spans the full width */
+    box-sizing: border-box; /* Include padding and border in width calculations */
   }
 
   .parent-container {
@@ -40,3 +51,18 @@
     overflow: visible;
     display: block;
   }
+
+  .form-line {
+    width: 100%; /* Ensure the line spans the full width */
+    display: block; /* Ensure proper layout */
+  }
+
+  @media (max-width: 768px) {
+    .categories-container {
+      justify-content: center; /* Center buttons on smaller screens */
+    }
+  
+    .categoryButton {
+      min-width: 100px; /* Reduce button width for smaller screens */
+    }
+}

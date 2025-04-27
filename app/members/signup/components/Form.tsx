@@ -13,6 +13,7 @@ import Switch from '@components/Form/Switch';
 import Button from '@components/Button/Button';
 import Loader from '@components/Loader/Loader';
 import CategoryButton from '@components/../app/members/signup/components/CategoryButton';
+import styles from '@components/../app/members/signup/components/CategoryButton.module.css';
 
 // utils
 import Request, { type IRequest, type IResponse } from '@utils/Request';
@@ -24,6 +25,8 @@ interface IFormProps {
   fullname: string;
   email: string;
   password: string;
+  location: string;
+  preferences: string[];
 }
 
 const Form: React.FC = () => {
@@ -36,14 +39,21 @@ const Form: React.FC = () => {
     email: '',
     password: '',
     tos: false,
+    location: '',
+    preferences: [],
   });
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
   const handleCategoryToggle = (category: string): void => {
-    setSelectedCategories((prev) =>
-      prev.includes(category) ? prev.filter((cat) => cat !== category) : [...prev, category]
-    );
+    setFormValues((prev) => {
+      const updatedPreferences = prev.preferences.includes(category)
+        ? prev.preferences.filter((pref) => pref !== category) // Remove if already selected
+        : [...prev.preferences, category]; // Add if not selected
+
+      return {
+        ...prev,
+        preferences: updatedPreferences, // Update preferences in formValues
+      };
+    });
   };
 
   /**
@@ -92,6 +102,11 @@ const Form: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<any> => {
     e.preventDefault();
 
+    if (!formValues.location) {
+      showAlert({ type: 'error', text: 'Please select a city before proceeding.' });
+      return;
+    }
+
     hideAlert();
 
     setLoading(true);
@@ -104,7 +119,8 @@ const Form: React.FC = () => {
         email: formValues.email,
         password: formValues.password,
         full_name: formValues.fullname,
-        categories: selectedCategories,
+        location: formValues.location,
+        preferences: formValues.preferences,
       },
     };
 
@@ -123,6 +139,7 @@ const Form: React.FC = () => {
             email: formValues.email,
             fullname: formValues.fullname,
             password: formValues.password,
+            location: formValues.location,
             isLoggedIn: true,
             // Add any other user data returned from the API
             ...(data.results?.user || {}),
@@ -158,6 +175,19 @@ const Form: React.FC = () => {
     { icon: 'theater_comedy', text: 'Theatre' },
     { icon: 'help', text: 'Undefined' },
     { icon: 'question_mark', text: 'Unknown' },
+  ];
+
+  const cities = [
+    { text: 'New York' },
+    { text: 'Los Angeles' },
+    { text: 'Chicago' },
+    { text: 'Austin' },
+    { text: 'San Francisco' },
+    { text: 'Seattle' },
+    { text: 'Miami' },
+    { text: 'Denver' },
+    { text: 'Boston' },
+    { text: 'Atlanta' },
   ];
 
   return (
@@ -271,6 +301,45 @@ const Form: React.FC = () => {
         </div>
         <div className='form-line'>
           <div className='label-line'>
+            <label htmlFor='location'>Select your city</label>
+          </div>
+          <select
+            name='location'
+            value={formValues.location}
+            onChange={(e) => setFormValues({ ...formValues, location: e.target.value })}
+            required
+            className='dropdown'
+          >
+            <option value='' disabled>
+              -- Select a city --
+            </option>
+            {cities.map((city) => (
+              <option key={city.text} value={city.text}>
+                {city.text}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className='form-line'>
+          <div className='label-line'>
+            <label htmlFor='categories'>Choose your preference(s)</label>
+          </div>
+          <div className='form-categories'>
+            <div className={styles.buttonContainer}>
+              {eventCategories.map((category) => (
+                <CategoryButton
+                  key={category.text}
+                  icon={category.icon}
+                  text={category.text}
+                  isSelected={formValues.preferences.includes(category.text)}
+                  onClick={() => handleCategoryToggle(category.text)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className='form-line'>
+          <div className='label-line'>
             <label htmlFor='tos'>Agreements</label>
           </div>
           <Switch name='tos' color='blue' onChange={handleCheckboxChange}>
@@ -284,25 +353,6 @@ const Form: React.FC = () => {
             </Link>
           </Switch>
         </div>
-        <div className='form-line'>
-          <div className='label-line'>
-            <label htmlFor='categories'>Choose your preference(s)</label>
-          </div>
-          <div className='form-categories'>
-            <div className='categories-container'>
-              {eventCategories.map((category) => (
-                <CategoryButton
-                  key={category.text}
-                  icon={category.icon}
-                  text={category.text}
-                  isSelected={selectedCategories.includes(category.text)}
-                  onClick={() => handleCategoryToggle(category.text)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
         <div className='form-buttons'>
           <Button type='submit' color='blue-filled' text='Sign up' />
         </div>
