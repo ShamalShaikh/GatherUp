@@ -24,6 +24,7 @@ interface IProps {
     username: string;
     fullname: string;
     email: string;
+    city: string;
     preferences: string[];
   };
 }
@@ -32,6 +33,7 @@ interface IFormProps {
   username: string;
   fullname: string;
   email: string;
+  city: string;
   preferences?: string[];
 }
 
@@ -57,25 +59,57 @@ const FormMain: React.FC<IProps> = ({ data }) => {
     username: '',
     fullname: '',
     email: '',
+    city: '',
     preferences: [],
   });
 
   useEffect(() => {
-    // Load user data from localStorage when component mounts
-    const userJson = localStorage.getItem('user');
-    if (userJson) {
-      try {
-        const userData = JSON.parse(userJson);
-        setFormValues({
-          username: userData.username || '',
-          fullname: userData.fullname || userData.full_name || '',
-          email: userData.email || '',
-          preferences: userData.preferences || [],
-        });
-      } catch (error) {
-        console.error('Error parsing user data:', error);
+    const fetchPreferences = async () => {
+      const userJson = localStorage.getItem('user');
+
+      if (userJson) {
+        try {
+          const userData = JSON.parse(userJson);
+          console.log('Loaded user data:', userData);
+
+          // Set initial form values
+          setFormValues({
+            username: userData.username || '',
+            fullname: userData.fullname || userData.full_name || '',
+            email: userData.email || '',
+            city: userData.location || '',
+          });
+
+          // Fetch preferences from the API
+          const response = await fetch('http://127.0.0.1:8080/getPreferences', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username: userData.username }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('Fetched preferences:', result.data);
+
+            // Update preferences in formValues
+            setFormValues((prev) => ({
+              ...prev,
+              preferences: result.data || [], // Use the fetched preferences
+            }));
+          } else {
+            console.error('Failed to fetch preferences:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error loading user data or fetching preferences:', error);
+        }
+      } else {
+        console.log('No user data found in localStorage');
       }
-    }
+    };
+
+    fetchPreferences();
   }, []);
 
   /**
@@ -208,6 +242,22 @@ const FormMain: React.FC<IProps> = ({ data }) => {
             required
             disabled
           />
+        </div>
+        <div className='form-line'>
+          <div className='one-line'>
+            <div className='label-line'>
+              <label htmlFor='city'>City</label>
+            </div>
+            <Input
+              type='text'
+              name='city'
+              value={formValues.city}
+              maxLength={64}
+              placeholder='Enter your city'
+              required
+              onChange={handleChange}
+            />
+          </div>
         </div>
         <div className='form-line'>
           <label htmlFor='preferences'>Preferences</label>
