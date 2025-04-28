@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import ServerRequest, { type IRequest, type IResponse } from '@utils/ServerRequest';
+import Request, { type IRequest, type IResponse } from '@utils/Request';
 
 // Helper function to parse parameters from request (either query params or body)
 const parseParameters = async (request: Request) => {
