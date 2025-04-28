@@ -13,6 +13,7 @@ import Switch from '@components/Form/Switch';
 import Button from '@components/Button/Button';
 import Loader from '@components/Loader/Loader';
 import CategoryButton from '@components/../app/members/signup/components/CategoryButton';
+import styles from './CategoryButton.module.css';
 
 // utils
 import Request, { type IRequest, type IResponse } from '@utils/Request';
@@ -286,7 +287,12 @@ const Form: React.FC = () => {
         </div>
         <div className='form-line'>
           <div className='label-line'>
-            <label htmlFor='categories'>Choose your preference(s)</label>
+            <label htmlFor='categories'>
+              Choose your preference(s)
+              {selectedCategories.length > 0 && (
+                <span className={styles.selectedCount}>{selectedCategories.length} selected</span>
+              )}
+            </label>
           </div>
           <div className='form-categories'>
             <div className='categories-container'>

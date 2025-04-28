@@ -51,6 +51,12 @@ interface IEventResult {
   };
 }
 
+// Add interface for FormSearch component props
+interface FormSearchProps {
+  onSearchComplete?: (results: IEventResult[]) => void;
+  onLoadingChange?: (isLoading: boolean) => void;
+}
+
 // Adding a Simple Calendar Component
 const Calendar = ({
   selectedDate,
@@ -356,7 +362,8 @@ const formatEventDate = (isoDate: string): string => {
   }
 };
 
-const FormSearch: React.FC = () => {
+// Update the component definition to accept props
+const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChange }) => {
   const { showAlert, hideAlert } = useAlert();
   const [isMounted, setIsMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
@@ -368,7 +375,7 @@ const FormSearch: React.FC = () => {
   const [showStateDropdown, setShowStateDropdown] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
-
+  
   const [formValues, setFormValues] = useState<IFormProps>({
     name: '',
     state: 'Any State',
@@ -377,18 +384,21 @@ const FormSearch: React.FC = () => {
     categories: [],
   });
 
-  const states = ['Any State', 'CA', 'NY', 'TX', 'FL', 'IL'];
+  const states = [
+    'Any State', 
+    'AL', 'CA', 'FL', 'GA', 
+    'IL', 'NY', 'OH', 'PA', 
+    'TX'
+  ];
+  
   const cities = [
     'Any City',
-    'Los Angeles',
-    'New York',
-    'Chicago',
-    'Miami',
-    'Seattle',
-    'Dallas',
-    'San Francisco',
+    'Atlanta', 'Chicago', 'Dallas',
+    'Houston', 'Los Angeles', 'Miami',
+    'New York', 'Philadelphia', 'Phoenix',
+    'San Francisco'
   ];
-
+  
   // Refs for dropdown containers
   const stateRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
@@ -484,7 +494,7 @@ const FormSearch: React.FC = () => {
         break;
     }
   };
-
+  
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -523,7 +533,7 @@ const FormSearch: React.FC = () => {
         setShowDatePicker(false);
       }
     }
-
+    
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleKeyDown);
 
@@ -586,55 +596,62 @@ const FormSearch: React.FC = () => {
     });
   };
 
+  // Update setIsLoading to also call onLoadingChange if provided
+  const updateLoadingState = (loading: boolean) => {
+    setIsLoading(loading);
+    if (onLoadingChange) {
+      onLoadingChange(loading);
+    }
+  };
+
   /**
-   * Handles the form submission event.
+   * Handles the form submission, validates input, and makes API request.
    *
-   * Prevents the default form submission behavior, validates inputs,
-   * and sends the form data to the backend filterEvents API.
-   *
-   * @param {React.FormEvent<HTMLFormElement>} e - The event object from the form submission.
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
    */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-
-    const { name, state, city, date, categories } = formValues;
-
-    // Validate search input
-    if (
-      name === '' &&
-      categories.length === 0 &&
-      state === 'Any State' &&
-      city === 'Any City' &&
-      date === null
-    ) {
-      showAlert({
-        type: 'error',
-        text: 'Please enter minimum 3 characters for search or select at least one category.',
-      });
-      return;
-    }
-
-    // Set to null if "Any" values are selected
-    const stateParam = state === 'Any State' ? null : state;
-    const cityParam = city === 'Any City' ? null : city;
-
-    // Format the request data
-    const requestData = {
-      name: name.trim() || '',
-      state: stateParam || '',
-      city: cityParam || '',
-      date: date ? format(date, 'yyyy-MM-dd') : '',
-      categories: categories.length > 0 ? categories : [],
-    };
-
-    // Log the search parameters
-    console.log('Sending search parameters to API:', requestData);
-
-    // Reset search state
-    setSearchResults([]);
+    
+    updateLoadingState(true);
     setHasSearched(true);
 
     try {
+      const { name, state, city, date, categories } = formValues;
+
+      // Validate search input
+      if (
+        name === '' &&
+        categories.length === 0 &&
+        state === 'Any State' &&
+        city === 'Any City' &&
+        date === null
+      ) {
+        showAlert({
+          type: 'error',
+          text: 'Please enter minimum 3 characters for search or select at least one category.',
+        });
+        return;
+      }
+
+      // Set to null if "Any" values are selected
+      const stateParam = state === 'Any State' ? null : state;
+      const cityParam = city === 'Any City' ? null : city;
+
+      // Format the request data
+      const requestData = {
+        name: name.trim() || '',
+        state: stateParam || '',
+        city: cityParam || '',
+        date: date ? format(date, 'yyyy-MM-dd') : '',
+        categories: categories.length > 0 ? categories : [],
+      };
+
+      // Log the search parameters
+      console.log('Sending search parameters to API:', requestData);
+
+      // Reset search state
+      setSearchResults([]);
+
       // Prepare request parameters
       const parameters: IRequest = {
         url: 'searchEvents',
@@ -642,63 +659,50 @@ const FormSearch: React.FC = () => {
         postData: requestData,
       };
 
-      // Show loading state
-      setIsLoading(true);
-
       // Send request to API
       const response: IResponse = await Request.getResponse(parameters);
 
-      // Hide loading state
-      setIsLoading(false);
-
       // Handle response
       if (response.status === 200) {
-        // Success - handle the response data structure safely
+        // Extract results from response, handling different data structures
         let results: IEventResult[] = [];
-
-        // Use type assertion to handle the response data
-        const responseData = response.data as any;
-
-        if (responseData) {
-          if (Array.isArray(responseData.data)) {
-            results = responseData.data;
-          } else if (Array.isArray(responseData.results)) {
-            results = responseData.results;
-          } else if (Array.isArray(responseData)) {
-            results = responseData;
-          }
+        if (response.data.data && Array.isArray(response.data.data)) {
+          results = response.data.data;
+        } else if (response.data.results && Array.isArray(response.data.results)) {
+          results = response.data.results;
         }
-
+        
         setSearchResults(results);
 
-        // Show success message for 1 second
-        showAlert({
-          type: 'success',
-          text: `Found ${results.length} events matching your criteria`,
-        });
+        // If onSearchComplete callback was provided, call it with the results
+        if (onSearchComplete) {
+          onSearchComplete(results);
+        }
 
-        // Auto-dismiss the success message after 1 second
-        setTimeout(() => {
-          hideAlert();
-        }, 1000);
+        if (results.length === 0) {
+          showAlert({
+            type: 'info',
+            text: 'No events found matching your search criteria.'
+          });
+        }
       } else {
-        // Show error message
+        // Handle unsuccessful response
         showAlert({
           type: 'error',
-          text: response.data.title || 'Failed to filter events. Please try again.',
+          text: response.data.title || 'An error occurred. Please try again later.'
         });
+        console.error('API error:', response.data);
+        setSearchResults([]);
       }
     } catch (error) {
-      // Hide loading state
-      setIsLoading(false);
-
-      // Show error message
+      console.error('Error submitting search:', error);
       showAlert({
         type: 'error',
-        text: 'An error occurred while connecting to the server. Please try again.',
+        text: 'Failed to search for events. Please try again.'
       });
-
-      console.error('Error filtering events:', error);
+      setSearchResults([]);
+    } finally {
+      updateLoadingState(false);
     }
   };
 
@@ -759,7 +763,7 @@ const FormSearch: React.FC = () => {
     <div className={styles.searchContainer}>
       <form noValidate onSubmit={handleSubmit} className={styles.searchForm}>
         <h3 className={styles.searchTitle}>Find Events</h3>
-
+        
         <div className={styles.formGrid}>
           <div className={styles.formSection}>
             <label className={styles.inputLabel}>Name</label>
@@ -773,7 +777,7 @@ const FormSearch: React.FC = () => {
               onChange={handleChange}
             />
           </div>
-
+          
           <div className={styles.formSection}>
             <label className={styles.inputLabel}>State</label>
             <div className={styles.dropdownContainer} ref={stateRef}>
@@ -846,7 +850,7 @@ const FormSearch: React.FC = () => {
           <div className={styles.formSection}>
             <label className={styles.inputLabel}>City</label>
             <div className={styles.dropdownContainer} ref={cityRef}>
-              <button
+              <button 
                 type='button'
                 className={styles.dropdownButton}
                 onClick={() => setShowCityDropdown(!showCityDropdown)}
@@ -859,20 +863,20 @@ const FormSearch: React.FC = () => {
                   {showCityDropdown ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
                 </span>
               </button>
-
+              
               {isMounted &&
                 showCityDropdown &&
                 createPortal(
-                  <div
+                <div 
                     id='city-dropdown-portal'
-                    className={styles.dropdownMenu}
+                  className={styles.dropdownMenu}
                     role='listbox'
                     tabIndex={-1}
                     aria-activedescendant={
                       focusedCityIndex >= 0 ? `city-option-${focusedCityIndex}` : undefined
                     }
-                    style={{
-                      position: 'fixed',
+                  style={{
+                    position: 'fixed',
                       top: getDropdownPosition(cityRef).top,
                       left: getDropdownPosition(cityRef).left,
                       width: windowWidth < 768 ? 'auto' : getDropdownPosition(cityRef).width,
@@ -904,18 +908,18 @@ const FormSearch: React.FC = () => {
                         onFocus={() => setFocusedCityIndex(index)}
                       >
                         {city}
-                      </div>
-                    ))}
-                  </div>,
-                  document.body
-                )}
+                    </div>
+                  ))}
+                </div>,
+                document.body
+              )}
             </div>
           </div>
-
+          
           <div className={styles.formSection}>
             <label className={styles.inputLabel}>Date</label>
             <div className={styles.dropdownContainer} ref={dateRef}>
-              <button
+              <button 
                 type='button'
                 className={styles.dropdownButton}
                 onClick={() => setShowDatePicker(!showDatePicker)}
@@ -926,7 +930,7 @@ const FormSearch: React.FC = () => {
                 <span>{formatDate(formValues.date)}</span>
                 <span className='material-symbols-outlined'>calendar_month</span>
               </button>
-
+              
               {isMounted &&
                 showDatePicker &&
                 createPortal(
@@ -948,13 +952,13 @@ const FormSearch: React.FC = () => {
                       selectedDate={formValues.date}
                       onDateSelect={handleDateSelect}
                       onClose={() => setShowDatePicker(false)}
-                    />
-                  </div>,
-                  document.body
-                )}
+                  />
+                </div>,
+                document.body
+              )}
             </div>
           </div>
-
+          
           <div className={styles.formSection}>
             <button type='submit' className={styles.searchButton} disabled={isLoading}>
               {isLoading ? (

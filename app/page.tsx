@@ -60,7 +60,6 @@ const Page: React.FC = () => {
   const [latestEvents, setLatestEvents] = useState<Event[]>([]);
   const [moreEvents, setMoreEvents] = useState<Event[]>([]);
   const [editorsChoice, setEditorsChoice] = useState<Event[]>([]);
-  const [kidsEvents, setKidsEvents] = useState<Event[]>([]);
   
   useEffect(() => {
     const fetchEvents = async () => {
@@ -130,7 +129,6 @@ const Page: React.FC = () => {
       setLatestEvents(events.slice(0, 6));
       setMoreEvents(events.slice(6, 12));
       setEditorsChoice(events.slice(12, 18));
-      setKidsEvents(events.slice(18, 24));
     };
     
     // Helper function to use mock data when API fails
@@ -169,7 +167,6 @@ const Page: React.FC = () => {
       setLatestEvents(mockEvents.slice(0, 6));
       setMoreEvents(mockEvents.slice(6, 12));
       setEditorsChoice(mockEvents.slice(12, 18));
-      setKidsEvents(mockEvents.slice(18, 24));
     };
     
     fetchEvents();
@@ -181,7 +178,7 @@ const Page: React.FC = () => {
         <div className='container'>
           <div className='center'>
             <Heading type={1} color='gray' text='Discover' />
-            <p className='gray'>Discover, search and filter best events in London.</p>
+            <p className='gray'>Discover, search, and filter best events.</p>
           </div>
         </div>
 
@@ -243,25 +240,6 @@ const Page: React.FC = () => {
               name={event.name || 'Event name goes here'}
               venue={event.venue?.name || 'Venue TBD'}
               image={event.image_url || 'https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'}
-              external={!!(event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url)}
-            />
-          ))
-        ) : (
-          <p>Loading events...</p>
-        )}
-      </CardGroup>
-
-      <CardGroup url='list' title='For kids' color='purple' background='white'>
-        {kidsEvents.length > 0 ? (
-          kidsEvents.map((event, index) => (
-            <EventCard
-              key={`kids-${index}`}
-              url={event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url || `/events/${event._id}`}
-              color='purple'
-              when={event.dto_date_time || 'TBD'}
-              name={event.name || 'Event name goes here'}
-              venue={event.venue?.name || 'Venue TBD'}
-              image={event.image_url || 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'}
               external={!!(event.sources?.ticketmaster?.url || event.sources?.eventbrite?.url)}
             />
           ))

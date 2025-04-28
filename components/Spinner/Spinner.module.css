@@ -1,0 +1,50 @@
+.spinnerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: spin 1.5s linear infinite;
+}
+
+.spinnerSm {
+  font-size: 1.5rem;
+}
+
+.spinnerMd {
+  font-size: 2.5rem;
+}
+
+.spinnerLg {
+  font-size: 3.5rem;
+}
+
+/* Color variations */
+.blue {
+  color: #3b82f6;
+}
+
+.red {
+  color: #ef4444;
+}
+
+.orange {
+  color: #f59e0b;
+}
+
+.gray {
+  color: #6b7280;
+}
+
+.white {
+  color: #ffffff;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 

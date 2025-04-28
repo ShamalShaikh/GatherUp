@@ -71,11 +71,11 @@ const Header: React.FC = () => {
           <Link href='/' className='gray'>
             Home
           </Link>
+          <Link href='/map' className='gray'>
+            Event Map
+          </Link>
           <Link href='/contact' className='gray'>
             Contact us
-          </Link>
-          <Link href='/news' className='gray'>
-            News
           </Link>
         </div>
         <div className='members' ref={wrapperRef}>
@@ -155,8 +155,8 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link href='/news' className='white'>
-                    News
+                  <Link href='/map' className='white'>
+                    Event Map
                   </Link>
                 </li>
                 <li>
