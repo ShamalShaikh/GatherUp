@@ -1,0 +1,383 @@
+/* Map Component Styles */
+.mapContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Loading Spinner */
+.loadingSpinner, .loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+}
+
+.spinner, .spinningIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  gap: 0.5rem;
+}
+
+.spinner .material-symbols-outlined, .spinningIcon {
+  font-size: 2rem;
+  color: #3b82f6;
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.errorMessage, .error-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 10;
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-message h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+  color: #1f2937;
+}
+
+.error-message p, .errorMessage p {
+  color: #6b7280;
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.errorIcon, .error-message .material-symbols-outlined {
+  font-size: 2.5rem;
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.retryButton {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.retryButton:hover {
+  background-color: #2563eb;
+}
+
+/* Custom Marker */
+.customMarker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.customMarker:hover {
+  transform: scale(1.1);
+  z-index: 2;
+}
+
+.customMarker:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.markerIcon {
+  font-size: 16px;
+}
+
+/* Event Popup Styles - match FormSearch card style */
+.eventPopup {
+  z-index: 5;
+}
+
+/* Fix for global selectors - include the local class */
+.eventPopup :global(.mapboxgl-popup) {
+  z-index: 5;
+}
+
+.eventPopup :global(.mapboxgl-popup-content) {
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  background-color: white;
+  min-width: 280px;
+  max-width: 350px;
+}
+
+.eventPopup :global(.mapboxgl-popup-close-button) {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 18px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 10;
+  line-height: 1;
+  transition: background-color 0.2s;
+}
+
+.eventPopup :global(.mapboxgl-popup-close-button:hover) {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.eventPopup :global(.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip) {
+  border-top-color: white;
+}
+
+.popupCard {
+  width: 100%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.popupImageContainer {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background-color: #f3f4f6;
+}
+
+.popupImage {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.popupCategory {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+}
+
+.popupContent {
+  padding: 16px;
+}
+
+.popupTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.popupMetadata {
+  margin-bottom: 16px;
+}
+
+.popupMetadataItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.popupMetadataItem .material-symbols-outlined {
+  font-size: 1.125rem;
+  color: #6b7280;
+}
+
+.availableStatus {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.unavailableStatus {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.popupActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.popupButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popupButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.popupButton .material-symbols-outlined {
+  font-size: 1.125rem;
+}
+
+.popupShareButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popupShareButton:hover {
+  background-color: #e5e7eb;
+}
+
+/* Cluster Marker Styles */
+.clusterMarker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clusterMarker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive styles for popup */
+@media (max-width: 768px) {
+  .popupImageContainer {
+    height: 140px;
+  }
+  
+  .popupTitle {
+    font-size: 1rem;
+  }
+  
+  .popupMetadataItem {
+    font-size: 0.8125rem;
+  }
+  
+  .popupButton {
+    font-size: 0.8125rem;
+    padding: 8px;
+  }
+}
+
+/* Event Marker */
+.eventMarker {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: white;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.eventMarker:hover {
+  transform: translateY(-4px);
+  z-index: 2;
+}
+
+.eventMarker:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.markerPin {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 8px;
+  background-color: currentColor;
+} 

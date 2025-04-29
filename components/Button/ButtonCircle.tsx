@@ -8,12 +8,12 @@ interface IProps {
 }
 
 const ButtonCircle: React.FC<IProps> = ({ url, icon, text }) => (
-  <Link className='circle-button' href={`/${url}`}>
+  <button className='circle-button'>
     <div className='circle'>
       <span className='material-symbols-outlined right-icon'>{icon}</span>
     </div>
     <div className='text'>{text}</div>
-  </Link>
+  </button>
 );
 
 export default ButtonCircle;
