@@ -164,7 +164,7 @@ const Form: React.FC = () => {
   }
 
   const eventCategories = [
-    { icon: 'music_note', text: 'Alternative' },
+    { icon: 'music_note', text: 'Music' },
     { icon: 'theater_comedy', text: 'Comedy' },
     { icon: 'nightlife', text: 'Dance/Electronic' },
     { icon: 'keyboard_voice', text: 'Hip-Hop/Rap' },

@@ -334,7 +334,7 @@ const CategoryButton: React.FC<CategoryButtonProps> = ({ icon, text, isSelected,
 
 // Available categories
 const eventCategories = [
-  { icon: 'music_note', text: 'Alternative' },
+  { icon: 'music_note', text: 'Music' },
   { icon: 'theater_comedy', text: 'Comedy' },
   { icon: 'nightlife', text: 'Dance/Electronic' },
   { icon: 'keyboard_voice', text: 'Hip-Hop/Rap' },
@@ -344,8 +344,8 @@ const eventCategories = [
   { icon: 'emoji_people', text: 'Performance Art' },
   { icon: 'music_note', text: 'Pop' },
   { icon: 'theater_comedy', text: 'Theatre' },
-  { icon: 'help', text: 'Undefined' },
-  { icon: 'question_mark', text: 'Unknown' },
+  // { icon: 'help', text: 'Undefined' },
+  // { icon: 'question_mark', text: 'Unknown' },
 ];
 
 // Function to format ISO date to readable format
