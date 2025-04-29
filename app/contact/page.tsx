@@ -210,62 +210,6 @@ const Page: React.FC = () => (
         </div>
       </div>
     </Section>
-<<<<<<< HEAD
-    
-    <Section className='white-background'>
-      <div className='container'>
-        <div className='center'>
-          <Heading type={5} color='green' text='Page Member Details' />
-          
-          <div className='team-grid'>
-            <div className='team-member page-member'>
-              <img src="https://picsum.photos/200/200?random=9" alt="Page Owner" className="team-photo" />
-              <h3 className='team-name'>Shamal Shaikh</h3>
-              <p className='team-title'>Senior Technical Lead</p>
-              <p className='gray team-bio'>
-                <strong>Email:</strong> shamal.shaikh@gatherup.com<br />
-                <strong>Department:</strong> Engineering<br />
-                <strong>Specialization:</strong> Frontend Architecture<br />
-                <strong>Office Hours:</strong> Mon-Fri, 9am-5pm PST
-              </p>
-              <div className='team-socials'>
-                <ButtonLink color='green-overlay' text='Email' rightIcon='email' url='mailto:shamal.shaikh@gatherup.com' target="_blank" />
-                <ButtonLink color='gray-overlay' text='Schedule Meeting' rightIcon='event_available' url='#' target="_blank" />
-              </div>
-            </div>
-            
-            <div className='team-member page-member'>
-              <img src="https://picsum.photos/200/200?random=10" alt="Assistant Page Owner" className="team-photo" />
-              <h3 className='team-name'>Alex Rivera</h3>
-              <p className='team-title'>Technical Product Manager</p>
-              <p className='gray team-bio'>
-                <strong>Email:</strong> alex.rivera@gatherup.com<br />
-                <strong>Department:</strong> Product<br />
-                <strong>Specialization:</strong> User Experience<br />
-                <strong>Office Hours:</strong> Mon-Fri, 10am-6pm EST
-              </p>
-              <div className='team-socials'>
-                <ButtonLink color='green-overlay' text='Email' rightIcon='email' url='mailto:alex.rivera@gatherup.com' target="_blank" />
-                <ButtonLink color='gray-overlay' text='Schedule Meeting' rightIcon='event_available' url='#' target="_blank" />
-              </div>
-            </div>
-          </div>
-          
-          <div className='padding-top'>
-            <h3>Need Help With This Page?</h3>
-            <p className='gray'>
-              If you encounter any issues with this page or have suggestions for improvement,
-              please reach out to our page members listed above. They are responsible for maintaining
-              and enhancing this part of the application.
-            </p>
-          </div>
-        </div>
-      </div>
-    </Section>
-    
-=======
-
->>>>>>> 1fdb3a4e4d5fba02ff8994e535287547420e7dfc
     <style jsx>{`
       .team-member {
         margin: 2rem auto;
@@ -280,15 +224,6 @@ const Page: React.FC = () => (
       .team-member:hover {
         transform: translateY(-5px);
       }
-<<<<<<< HEAD
-      
-      .page-member {
-        border-left: 4px solid #22c55e;
-      }
-      
-=======
-
->>>>>>> 1fdb3a4e4d5fba02ff8994e535287547420e7dfc
       .team-photo {
         width: 150px;
         height: 150px;
