@@ -65,6 +65,8 @@ const EventPopup: React.FC<EventPopupProps> = ({ event, onClose }) => {
   const genreColor = getMarkerColor(classifications?.genre || 'default');
   
   // Check if event has ticket sources available
+
+  // TODO#2 Why is this not able to find the url, whereas it is able to find the url in the FormSearch.tsx file?
   const hasTicketmasterUrl = sources?.ticketmaster?.url && sources.ticketmaster.url.trim() !== '';
   const hasEventbriteUrl = sources?.eventbrite?.url && sources.eventbrite.url.trim() !== '';
   const hasTicketUrl = hasTicketmasterUrl || hasEventbriteUrl;

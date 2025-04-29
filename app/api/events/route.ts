@@ -64,8 +64,8 @@ async function handleRequest(request: Request) {
       method: 'GET'
     };
 
-    // Use the ServerRequest utility designed for server-side API calls
-    const response: IResponse = await ServerRequest.getResponse(parameters);
+    // Use the Request utility designed for server-side API calls
+    const response: IResponse = await Request.getResponse(parameters);
 
     // Check if we got a valid response
     if (response.status === 200 && response.data?.data) {

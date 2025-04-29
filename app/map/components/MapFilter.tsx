@@ -361,6 +361,8 @@ const MapFilter: React.FC<MapFilterProps> = ({
   ];
   
   // State to cities mapping
+
+  // TODO#3 Just use similar logic as FormSearch.tsx
   const stateCities: Record<string, string[]> = {
     'Any State': ['Any City'],
     'AL': ['Any City', 'Birmingham', 'Huntsville', 'Mobile', 'Montgomery'],
@@ -377,7 +379,7 @@ const MapFilter: React.FC<MapFilterProps> = ({
   // Get cities based on selected state
   const getCitiesForState = useCallback((state: string): string[] => {
     return stateCities[state] || ['Any City'];
-  }, [stateCities]);
+  }, []);
   
   // Available cities based on selected state
   const [availableCities, setAvailableCities] = useState<string[]>(
@@ -402,18 +404,30 @@ const MapFilter: React.FC<MapFilterProps> = ({
     };
     
     const handleClickOutside = (event: MouseEvent) => {
+      // Use a ref to track if we need to update state to avoid unnecessary renders
+      let shouldUpdate = false;
+      
       // Close dropdowns when clicking outside
       if (stateRef.current && !stateRef.current.contains(event.target as Node)) {
-        setShowStateDropdown(false);
+        if (showStateDropdown) {
+          shouldUpdate = true;
+          setShowStateDropdown(false);
+        }
       }
       
       if (cityRef.current && !cityRef.current.contains(event.target as Node)) {
-        setShowCityDropdown(false);
+        if (showCityDropdown) {
+          shouldUpdate = true;
+          setShowCityDropdown(false);
+        }
       }
       
       if (dateRef.current && !dateRef.current.contains(event.target as Node) && 
           !(event.target as Element).closest(`.${styles.calendar}`)) {
-        setShowDatePicker(false);
+        if (showDatePicker) {
+          shouldUpdate = true;
+          setShowDatePicker(false);
+        }
       }
     };
     
@@ -502,41 +516,45 @@ const MapFilter: React.FC<MapFilterProps> = ({
     }
   };
   
-  // Form input change handler
+  // Fix the input handler to correctly update form values
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     
-    setFormValues({
-      ...formValues,
+    // Prevent default behavior that might be causing reloads
+    e.preventDefault();
+    
+    // Update form values with the new input value
+    setFormValues(prevValues => ({
+      ...prevValues,
       [name]: value,
-    });
+    }));
   };
   
   // Selection handlers
   const handleStateSelect = (state: string): void => {
-    setFormValues({
-      ...formValues,
+    setFormValues(prevValues => ({
+      ...prevValues,
       state,
       city: 'Any City', // Reset city when state changes
-    });
+    }));
     setShowStateDropdown(false);
     setFocusedStateIndex(-1);
   };
   
   const handleCitySelect = (city: string): void => {
-    setFormValues({
-      ...formValues,
+    setFormValues(prevValues => ({
+      ...prevValues,
       city,
-    });
+    }));
     setShowCityDropdown(false);
     setFocusedCityIndex(-1);
   };
   
   const handleDateSelect = (date: Date): void => {
-    setFormValues({
-      ...formValues,
+    setFormValues(prevValues => ({
+      ...prevValues,
       date,
-    });
+    }));
     setShowDatePicker(false);
   };
   

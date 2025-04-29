@@ -13,7 +13,7 @@ import Switch from '@components/Form/Switch';
 import Button from '@components/Button/Button';
 import Loader from '@components/Loader/Loader';
 import CategoryButton from '@components/../app/members/signup/components/CategoryButton';
-import styles from '@components/../app/members/signup/components/CategoryButton.module.css';
+// import styles from '@components/../app/members/signup/components/CategoryButton.module.css';
 import styles from './CategoryButton.module.css';
 
 // utils
@@ -354,7 +354,7 @@ const Form: React.FC = () => {
             </Link>
           </Switch>
         </div>
-        <div className='form-line'>
+        {/* <div className='form-line'>
           <div className='label-line'>
             <label htmlFor='categories'>
               Choose your preference(s)
@@ -376,7 +376,7 @@ const Form: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className='form-buttons'>
           <Button type='submit' color='blue-filled' text='Sign up' />

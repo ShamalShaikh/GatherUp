@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import EventMap from './components/EventMap';
 import MapFilter from './components/MapFilter';
 import Spinner from '../../components/Spinner/Spinner';
 import Link from 'next/link';
 import styles from './styles/MapPage.module.css';
-import { buildUrl } from '@utils/Request';
+import Request, { type IRequest, type IResponse } from '@utils/Request';
 
 // Define the interface to match the expected structure in EventMap
 interface EventData {
@@ -63,10 +63,17 @@ export default function MapPage() {
   const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   // Add state for initial filters
   const [initialFilters, setInitialFilters] = useState<IFilterFormProps | undefined>(undefined);
+
+  // Use a ref to store the latest events value
+  const eventsRef = useRef<EventData[]>([]);
+  
+  // Update ref whenever events change
+  useEffect(() => {
+    eventsRef.current = events;
+  }, [events]);
 
   // Mock data to use if API fails
   const mockEvents: EventData[] = [
@@ -141,8 +148,9 @@ export default function MapPage() {
   }
 
   // Function to apply filters to the events
-  const filterEvents = (filters: IFilterFormProps) => {
+  const filterEvents = useCallback((filters: IFilterFormProps) => {
     setLoading(true);
+    setError(null); // Reset error state before making a new request
     
     // Format date to YYYY-MM-DD for the API
     const formattedDate = filters.date 
@@ -158,114 +166,104 @@ export default function MapPage() {
       categories: filters.categories
     };
     
-    // Call the searchEvents API
-    // fetch(`${buildUrl()}/searchEvents`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(searchParams)
-    // })
-    //   .then(response => {
-    //     if (!response.ok) {
-    //       throw new Error(`API error: ${response.status}`);
-    //     }
-    //     return response.json();
-    //   })
-    //   .then(data => {
-    //     if (data.data && Array.isArray(data.data)) {
-    //       // Transform API response to match the expected EventData structure
-    //       const transformedEvents = data.data.map((event: any) => ({
-    //         _id: event._id || event.id || '',
-    //         name: event.name || event.title || '',
-    //         date_time: event.date_time || event.startDate || '',
-    //         image_url: event.image_url || event.image || '',
-    //         descriptions: event.description || event.descriptions || '',
-    //         venue: {
-    //           name: event.venue?.name || (event.location?.venue || ''),
-    //           city: event.venue?.city || (event.location?.city || ''),
-    //           state: event.venue?.state || (event.location?.state || ''),
-    //           country: event.venue?.country || (event.location?.country || '')
-    //         },
-    //         classifications: {
-    //           segment: event.classifications?.segment || 'Other',
-    //           genre: event.classifications?.genre || event.genres?.[0] || 'Other'
-    //         },
-    //         coordinates: (event.coordinates || (event.latitude && event.longitude)) 
-    //           ? {
-    //               lat: event.coordinates?.lat || event.latitude,
-    //               lng: event.coordinates?.lng || event.longitude
-    //             } 
-    //           : undefined,
-    //         price_range: event.price_range || (event.price 
-    //           ? {
-    //               min: event.price,
-    //               max: event.price,
-    //               currency: 'USD'
-    //             } 
-    //           : undefined)
-    //       }));
+    // Call the searchEvents API using the Request utility
+    const parameters: IRequest = {
+      url: 'searchEvents',
+      method: 'POST',
+      postData: searchParams
+    };
+    
+    Request.getResponse(parameters)
+      .then((response: IResponse) => {
+        if (response.status === 200 && response.data?.data && Array.isArray(response.data.data)) {
+          // Transform API response to match the expected EventData structure
+          const transformedEvents = response.data.data.map((event: any) => ({
+            _id: event._id || event.id || '',
+            name: event.name || event.title || '',
+            date_time: event.date_time || event.startDate || '',
+            image_url: event.image_url || event.image || '',
+            descriptions: event.description || event.descriptions || '',
+            venue: {
+              name: event.venue?.name || (event.location?.venue || ''),
+              city: event.venue?.city || (event.location?.city || ''),
+              state: event.venue?.state || (event.location?.state || ''),
+              country: event.venue?.country || (event.location?.country || '')
+            },
+            classifications: {
+              segment: event.classifications?.segment || 'Other',
+              genre: event.classifications?.genre || event.genres?.[0] || 'Other'
+            },
+            coordinates: (event.coordinates || (event.latitude && event.longitude)) 
+              ? {
+                  lat: event.coordinates?.lat || event.latitude,
+                  lng: event.coordinates?.lng || event.longitude
+                } 
+              : undefined,
+            price_range: event.price_range || (event.price 
+              ? {
+                  min: event.price,
+                  max: event.price,
+                  currency: 'USD'
+                } 
+              : undefined)
+          }));
           
-          // setFilteredEvents(transformedEvents);
+          setFilteredEvents(transformedEvents);
           
           // Update URL with search parameters without causing navigation
-      //     const params = new URLSearchParams();
-      //     if (filters.keyword) params.set('keyword', filters.keyword);
-      //     if (filters.state !== 'Any State') params.set('state', filters.state);
-      //     if (filters.city !== 'Any City') params.set('city', filters.city);
-      //     if (filters.date) params.set('date', formattedDate);
-      //     if (filters.categories.length > 0) params.set('categories', filters.categories.join(','));
+          const params = new URLSearchParams();
+          if (filters.keyword) params.set('keyword', filters.keyword);
+          if (filters.state !== 'Any State') params.set('state', filters.state);
+          if (filters.city !== 'Any City') params.set('city', filters.city);
+          if (filters.date) params.set('date', formattedDate);
+          if (filters.categories.length > 0) params.set('categories', filters.categories.join(','));
           
-      //     // Use history.replaceState to update URL without triggering a page reload or re-render
-      //     const newUrl = `${window.location.pathname}?${params.toString()}`;
-      //     window.history.replaceState({ path: newUrl }, '', newUrl);
-      //   } else {
-      //     console.warn('API returned unsuccessful status or unexpected format:', data);
-      //     showFallbackData('No events match your search criteria. Showing all events instead.');
-      //     setFilteredEvents(events); // Fall back to showing all events
-      //   }
-      // })
-      // .catch(error => {
-      //   console.error('Error filtering events:', error);
-      //   showFallbackData('Error filtering events. Showing all events instead.');
-      //   setFilteredEvents(events); // Fall back to showing all events
-      // })
-      // .finally(() => {
-      //   setLoading(false);
-      // });
-  };
+          // Use history.replaceState to update URL without triggering a page reload or re-render
+          const newUrl = `${window.location.pathname}?${params.toString()}`;
+          window.history.replaceState({ path: newUrl }, '', newUrl);
+          
+          // If no events found after successful API call
+          if (transformedEvents.length === 0) {
+            setError('No events found matching your search criteria. Try adjusting your filters.');
+          }
+        } else {
+          console.warn('API returned unsuccessful status or unexpected format:', response.data);
+          const errorMessage = response.data?.title || 'No events match your search criteria.';
+          setError(errorMessage);
+          showFallbackData('No events match your search criteria. Showing all events instead.');
+          setFilteredEvents(eventsRef.current); // Use ref instead of events dependency
+        }
+      })
+      .catch(error => {
+        console.error('Error filtering events:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error searching for events';
+        setError(`Error searching for events: ${errorMessage}`);
+        showFallbackData('Error filtering events. Showing all events instead.');
+        setFilteredEvents(eventsRef.current); // Use ref instead of events dependency
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []); // Remove events dependency
 
   useEffect(() => {
     async function fetchEvents() {
       setLoading(true);
+      setError(null); // Reset error state before making a new request
+      
       try {
-        // Fetch initial events from /getLandingEvents endpoint
-        const response = await fetch(`${buildUrl()}/getLandingEvents`, {
+        // Prepare request parameters for the API
+        const parameters: IRequest = {
+          url: 'getLandingEvents',
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // body: JSON.stringify({
-          //   // name: '',
-          //   // state: '',
-          //   // city: '',
-          //   // date: '',
-          //   // categories: []
-          // })
-        });
+        };
         
-        if (!response.ok) {
-          console.error(`API error: ${response.status} - ${response.statusText}`);
-          throw new Error(`API response error: ${response.status}`);
-        }
+        // Use the Request utility to fetch events
+        const response: IResponse = await Request.getResponse(parameters);
         
-        const data = await response.json();
-        
-        console.log('API response:', data);
-        
-        if (data.data && Array.isArray(data.data)) {
+        if (response.status === 200 && response.data?.data && Array.isArray(response.data.data)) {
           // Transform API response to match the expected EventData structure
-          const transformedEvents = data.data.map((event: any) => ({
+          const transformedEvents = response.data.data.map((event: any) => ({
             _id: event._id || event.id || '',
             name: event.name || event.title || '',
             date_time: event.date_time || event.startDate || '',
@@ -298,15 +296,23 @@ export default function MapPage() {
           
           setEvents(transformedEvents);
           setFilteredEvents(transformedEvents);
+          
+          // If no events found after successful API call
+          if (transformedEvents.length === 0) {
+            setError('No events found. Please try again later.');
+          }
         } else {
-          console.warn('API returned unsuccessful status or unexpected format:', data);
-          showFallbackData('API returned data in unexpected format. Using sample data instead.');
+          console.warn('API returned unsuccessful status or unexpected format:', response.data);
+          const errorMessage = response.data?.title || 'API returned data in unexpected format';
+          setError(errorMessage);
+          showFallbackData(`${errorMessage}. Using sample data instead.`);
         }
       } catch (apiError: unknown) {
         const errorMessage = apiError instanceof Error 
           ? apiError.message 
           : 'Unknown error occurred';
         console.error('API error details:', apiError);
+        setError(`Unable to fetch events data: ${errorMessage}`);
         showFallbackData(`Unable to fetch events data: ${errorMessage}. Using sample data instead.`);
       } finally {
         setLoading(false);
@@ -342,8 +348,7 @@ export default function MapPage() {
     };
 
     processUrlSearchParams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams, filterEvents]); // Keep both dependencies
 
   if (loading) {
     return (

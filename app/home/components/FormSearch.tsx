@@ -403,8 +403,22 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
   const stateRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
+  
+  // Refs to track current state without causing re-renders
+  const dropdownStateRef = useRef({
+    showStateDropdown: false,
+    showCityDropdown: false,
+    showDatePicker: false
+  });
+  
+  // Update refs when state changes
+  useEffect(() => {
+    dropdownStateRef.current.showStateDropdown = showStateDropdown;
+    dropdownStateRef.current.showCityDropdown = showCityDropdown;
+    dropdownStateRef.current.showDatePicker = showDatePicker;
+  }, [showStateDropdown, showCityDropdown, showDatePicker]);
 
-  // Set mounted state for client-side rendering and track window width
+  // Setup event listeners once on mount
   useEffect(() => {
     setIsMounted(true);
 
@@ -414,7 +428,10 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
 
     const handleScroll = () => {
       // Force update of dropdown positions when scrolling
-      if (showStateDropdown || showCityDropdown || showDatePicker) {
+      // Use ref values instead of state directly
+      if (dropdownStateRef.current.showStateDropdown || 
+          dropdownStateRef.current.showCityDropdown || 
+          dropdownStateRef.current.showDatePicker) {
         setForceUpdate((prev) => prev + 1);
       }
     };
@@ -431,7 +448,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [showStateDropdown, showCityDropdown, showDatePicker]);
+  }, []); // Empty dependency array - only run on mount and unmount
 
   // Function to get dropdown position
   const getDropdownPosition = (ref: React.RefObject<HTMLDivElement | null>) => {
@@ -497,6 +514,13 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
   
   // Close dropdowns when clicking outside
   useEffect(() => {
+    // Use a stable reference to the setter functions
+    const dropdownSetters = {
+      setShowStateDropdown,
+      setShowCityDropdown,
+      setShowDatePicker
+    };
+    
     function handleClickOutside(event: MouseEvent) {
       if (stateRef.current && !stateRef.current.contains(event.target as Node)) {
         // Don't close if clicking inside the dropdown portal
@@ -504,7 +528,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
         if (stateDropdownElement && stateDropdownElement.contains(event.target as Node)) {
           return;
         }
-        setShowStateDropdown(false);
+        dropdownSetters.setShowStateDropdown(false);
       }
 
       if (cityRef.current && !cityRef.current.contains(event.target as Node)) {
@@ -513,7 +537,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
         if (cityDropdownElement && cityDropdownElement.contains(event.target as Node)) {
           return;
         }
-        setShowCityDropdown(false);
+        dropdownSetters.setShowCityDropdown(false);
       }
 
       if (dateRef.current && !dateRef.current.contains(event.target as Node)) {
@@ -522,15 +546,15 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
         if (calendarElement && calendarElement.contains(event.target as Node)) {
           return;
         }
-        setShowDatePicker(false);
+        dropdownSetters.setShowDatePicker(false);
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setShowStateDropdown(false);
-        setShowCityDropdown(false);
-        setShowDatePicker(false);
+        dropdownSetters.setShowStateDropdown(false);
+        dropdownSetters.setShowCityDropdown(false);
+        dropdownSetters.setShowDatePicker(false);
       }
     }
     
@@ -541,7 +565,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, []); // Empty dependency array - only run on mount and unmount
 
   /**
    * Handles the change event for form inputs.

@@ -106,6 +106,36 @@ interface ViewStateChangeEvent {
   };
 }
 
+// Get event venue URL for tickets
+const getEventUrl = (event: EventData): string => {
+  if (event.sources?.ticketmaster?.url) {
+    return event.sources.ticketmaster.url;
+  }
+  if (event.sources?.eventbrite?.url) {
+    return event.sources.eventbrite.url;
+  }
+  return `/events/${event._id}`;
+};
+
+// Get ticket availability status
+const getTicketStatus = (event: EventData): { status: string; color: string } => {
+  if (!event.sources?.ticketmaster?.ticket_availability) {
+    return { status: 'Check Availability', color: '#6B7280' };
+  }
+  
+  const status = event.sources.ticketmaster.ticket_availability.toLowerCase();
+  
+  if (status.includes('available')) {
+    return { status: 'Tickets Available', color: '#10B981' };
+  } else if (status.includes('limited')) {
+    return { status: 'Limited Availability', color: '#F59E0B' };
+  } else if (status.includes('sold_out')) {
+    return { status: 'Sold Out', color: '#EF4444' };
+  }
+  
+  return { status: 'Check Availability', color: '#6B7280' };
+};
+
 const EventMap: React.FC<EventMapProps> = ({ 
   events, 
   height = '500px', 
@@ -330,36 +360,6 @@ const EventMap: React.FC<EventMapProps> = ({
   const handlePopupClose = useCallback(() => {
     setPopupInfo(null);
   }, []);
-  
-  // Get event venue URL for tickets
-  const getEventUrl = (event: EventData): string => {
-    if (event.sources?.ticketmaster?.url) {
-      return event.sources.ticketmaster.url;
-    }
-    if (event.sources?.eventbrite?.url) {
-      return event.sources.eventbrite.url;
-    }
-    return `/events/${event._id}`;
-  };
-  
-  // Get ticket availability status
-  const getTicketStatus = (event: EventData): { status: string; color: string } => {
-    if (!event.sources?.ticketmaster?.ticket_availability) {
-      return { status: 'Check Availability', color: '#6B7280' };
-    }
-    
-    const status = event.sources.ticketmaster.ticket_availability.toLowerCase();
-    
-    if (status.includes('available')) {
-      return { status: 'Tickets Available', color: '#10B981' };
-    } else if (status.includes('limited')) {
-      return { status: 'Limited Availability', color: '#F59E0B' };
-    } else if (status.includes('sold_out')) {
-      return { status: 'Sold Out', color: '#EF4444' };
-    }
-    
-    return { status: 'Check Availability', color: '#6B7280' };
-  };
 
   return (
     <div className="mapContainer" style={{ width, height }}>
@@ -385,12 +385,7 @@ const EventMap: React.FC<EventMapProps> = ({
               >
                 <EventMarker
                   genre={event.classifications?.genre || 'Other'}
-                  onClick={() => {
-                    setPopupInfo(event);
-                    if (onMarkerClick) {
-                      onMarkerClick(event);
-                    }
-                  }}
+                  onClick={() => handleMarkerClick(event)}
                   isSelected={popupInfo?._id === event._id}
                 />
               </Marker>
@@ -401,7 +396,7 @@ const EventMap: React.FC<EventMapProps> = ({
           {popupInfo && popupInfo.coordinates && (
             <EventPopup 
               event={popupInfo} 
-              onClose={() => setPopupInfo(null)} 
+              onClose={handlePopupClose} 
             />
           )}
           
@@ -453,4 +448,7 @@ const EventMap: React.FC<EventMapProps> = ({
   );
 };
 
-export default EventMap; 
+export default EventMap;
+
+// Export these utility functions for reuse in other components
+export { getMarkerColor, formatPrice, formatEventDate, getEventUrl, getTicketStatus }; 
