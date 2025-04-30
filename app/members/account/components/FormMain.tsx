@@ -47,6 +47,7 @@ const eventCategories = [
   { icon: 'category', text: 'Other' },
   { icon: 'emoji_people', text: 'Performance Art' },
   { icon: 'music_note', text: 'Pop' },
+  { icon: 'music_note', text: 'Music' },
   { icon: 'theater_comedy', text: 'Theatre' },
   { icon: 'help', text: 'Undefined' },
   { icon: 'question_mark', text: 'Unknown' },
