@@ -379,17 +379,13 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
 
   const states = [
     'Any State', 
-    'AL', 'CA', 'FL', 'GA', 
-    'IL', 'NY', 'OH', 'PA', 
-    'TX'
+    'NY', 'CA', 'IL', 'TX', 'CA', 'WA', 'FL', 'CO', 'MA', 'GA'
   ];
   
   const cities = [
     'Any City',
-    'Atlanta', 'Chicago', 'Dallas',
-    'Houston', 'Los Angeles', 'Miami',
-    'New York', 'Philadelphia', 'Phoenix',
-    'San Francisco'
+    'New York', 'Los Angeles', 'Chicago', 'Austin', 'San Francisco',
+    'Seattle', 'Miami', 'Denver', 'Boston', 'Atlanta'
   ];
   
   // Refs for dropdown containers
@@ -1089,7 +1085,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
                           </span>
                           {event.classifications?.genre ||
                             event.classifications?.segment ||
-                            'Uncategorized'}
+                            'Miscellaneous'}
                           {event.classifications?.subGenre &&
                             ` - ${event.classifications.subGenre}`}
                         </span>
@@ -1119,18 +1115,21 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearchComplete, onLoadingChan
                         )}
 
                         {/* Ticket purchase button */}
-                        {event.sources?.ticketmaster?.url &&
-                          event.sources.ticketmaster.ticket_availability === 'onsale' && (
-                            <a
-                              href={event.sources.ticketmaster.url}
-                              target='_blank'
-                              rel='noopener noreferrer'
-                              className={styles.buyButton}
-                            >
-                              <span className='material-symbols-outlined'>shopping_cart</span>
-                              Buy Tickets
-                            </a>
-                          )}
+                        {(event.sources?.ticketmaster?.url && event.sources.ticketmaster.ticket_availability === 'onsale') ||
+                         event.sources?.eventbrite?.url ? (
+                          <a
+                            href={
+                              event.sources.ticketmaster?.url ||
+                              event.sources.eventbrite?.url
+                            }
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className={styles.buyButton}
+                          >
+                            <span className='material-symbols-outlined'>shopping_cart</span>
+                            Buy Tickets
+                          </a>
+                        ) : null}
                       </div>
                     </div>
                   </div>

@@ -401,7 +401,7 @@ export default function MapPage() {
         {filteredEvents.length === events.length ? (
           <p>Showing all {events.length} events</p>
         ) : (
-          <p>Showing {filteredEvents.length} of {events.length} events</p>
+          <p>Showing {filteredEvents.length} events</p>
         )}
       </div>
       
